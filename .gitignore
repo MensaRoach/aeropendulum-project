@@ -1,9 +1,10 @@
 # CMake build directories
-build/
+.build/
 CMakeUserPresets.json
 
 # VS Code settings that might be user specific
-.vscode/
+.vscode/*
+!.vscode/settings.json
 
 # STM32CubeIDE / CubeMX
 .mxproject
