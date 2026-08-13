@@ -10,5 +10,8 @@
 
 // I2C Configuration
 #define MPU6050_I2C I2C1
+#define MPU6050_I2C_PORT GPIOB
+#define MPU6050_SCL_PIN LL_GPIO_PIN_6
+#define MPU6050_SDA_PIN LL_GPIO_PIN_7
 
 #endif // PIN_DEFINITIONS_H

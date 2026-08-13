@@ -4,6 +4,7 @@
 #include "stm32f4xx_ll_i2c.h"
 #include "stm32f4xx_ll_usart.h"
 #include "stm32f4xx_ll_utils.h"
+#include "stm32f4xx_ll_gpio.h"
 
 #define MPU6050_ADDR 0xD0
 
@@ -70,20 +71,29 @@ static void MPU6050_ReadRegs(uint8_t reg, uint8_t *buffer, uint8_t size)
     else
     {
         LL_I2C_ClearFlag_ADDR(MPU6050_I2C);
-        while (size > 2)
+        while (size > 3)
         {
             while (!LL_I2C_IsActiveFlag_RXNE(MPU6050_I2C))
                 ;
             *buffer++ = LL_I2C_ReceiveData8(MPU6050_I2C);
             size--;
         }
-        // size == 2
+        
+        // Now size == 3
         while (!LL_I2C_IsActiveFlag_BTF(MPU6050_I2C))
             ;
-        LL_I2C_AcknowledgeNextData(MPU6050_I2C, LL_I2C_NACK);
+        
+        // DR contains byte N-2, Shift Reg contains byte N-1
+        LL_I2C_AcknowledgeNextData(MPU6050_I2C, LL_I2C_NACK); // Send NACK for byte N
+        *buffer++ = LL_I2C_ReceiveData8(MPU6050_I2C); // Read byte N-2
+        
+        // Now wait for BTF again (byte N-1 in DR, byte N in Shift Reg)
+        while (!LL_I2C_IsActiveFlag_BTF(MPU6050_I2C))
+            ;
+            
         LL_I2C_GenerateStopCondition(MPU6050_I2C);
-        *buffer++ = LL_I2C_ReceiveData8(MPU6050_I2C);
-        *buffer++ = LL_I2C_ReceiveData8(MPU6050_I2C);
+        *buffer++ = LL_I2C_ReceiveData8(MPU6050_I2C); // Read byte N-1
+        *buffer++ = LL_I2C_ReceiveData8(MPU6050_I2C); // Read byte N
     }
 }
 
@@ -97,8 +107,48 @@ static void USART2_Send(const uint8_t *data, size_t length)
     }
 }
 
+static void i2c_bus_recovery(void) {
+    LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+    
+    // Configure SCL and SDA as Output Open-Drain
+    GPIO_InitStruct.Pin = MPU6050_SCL_PIN | MPU6050_SDA_PIN;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_OPENDRAIN;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+    LL_GPIO_Init(MPU6050_I2C_PORT, &GPIO_InitStruct);
+    
+    // Set both high
+    LL_GPIO_SetOutputPin(MPU6050_I2C_PORT, MPU6050_SCL_PIN | MPU6050_SDA_PIN);
+    LL_mDelay(1);
+    
+    // Toggle SCL 9 times
+    for(int i=0; i<9; i++) {
+        LL_GPIO_ResetOutputPin(MPU6050_I2C_PORT, MPU6050_SCL_PIN);
+        LL_mDelay(1);
+        LL_GPIO_SetOutputPin(MPU6050_I2C_PORT, MPU6050_SCL_PIN);
+        LL_mDelay(1);
+    }
+    
+    // Generate STOP condition manually (SDA low, SCL high, SDA high)
+    LL_GPIO_ResetOutputPin(MPU6050_I2C_PORT, MPU6050_SDA_PIN);
+    LL_mDelay(1);
+    LL_GPIO_SetOutputPin(MPU6050_I2C_PORT, MPU6050_SCL_PIN);
+    LL_mDelay(1);
+    LL_GPIO_SetOutputPin(MPU6050_I2C_PORT, MPU6050_SDA_PIN);
+    LL_mDelay(1);
+    
+    // Reconfigure SCL and SDA as Alternate Function (AF4 for I2C)
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+    GPIO_InitStruct.Alternate = LL_GPIO_AF_4;
+    LL_GPIO_Init(MPU6050_I2C_PORT, &GPIO_InitStruct);
+}
+
 void mpu6050_telemetry_init(void)
 {
+    // Perform I2C bus recovery in case the MPU6050 is stuck holding SDA low
+    i2c_bus_recovery();
+    
     LL_I2C_Enable(MPU6050_I2C);
     LL_mDelay(100);
 

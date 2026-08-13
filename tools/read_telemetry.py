@@ -50,7 +50,7 @@ def read_telemetry(port, baudrate):
                                 
                                 print(f"Accel: X={accel_x:6d} Y={accel_y:6d} Z={accel_z:6d} | "
                                       f"Gyro: X={gyro_x:6d} Y={gyro_y:6d} Z={gyro_z:6d} | "
-                                      f"Temp: {temp_c:5.1f} °C")
+                                      f"Temp: {temp_c:5.1f} °C", flush=True)
                             else:
                                 print(f"Warning: Decoded length {len(decoded)} does not match struct size {struct_size}")
                         except cobs.DecodeError:
