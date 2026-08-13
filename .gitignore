@@ -1,0 +1,11 @@
+# CMake build directories
+build/
+CMakeUserPresets.json
+
+# VS Code settings that might be user specific
+.vscode/
+
+# STM32CubeIDE / CubeMX
+.mxproject
+*.launch
+*FLASH.ld
