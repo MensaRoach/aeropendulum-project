@@ -95,7 +95,7 @@ int main(void)
   MX_I2C1_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  main_app_init();
+  app_main(); // Call the main application function
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -105,7 +105,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    main_app_loop();
   }
   /* USER CODE END 3 */
 }

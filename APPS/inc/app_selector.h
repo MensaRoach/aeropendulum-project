@@ -7,7 +7,8 @@
 // Uncomment ONE of the following defines to select which application to build
 // and run on the board.
 
-#define APP_HELLO_USART
+// #define APP_HELLO_USART
 // #define APP_BLINKY
+#define APP_MPU6050_TELEMETRY
 
 #endif // APP_SELECTOR_H
