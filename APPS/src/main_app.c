@@ -1,9 +1,27 @@
 #include "main_app.h"
+#include "app_selector.h"
+
+// Include selected app headers
+#ifdef APP_HELLO_USART
+#include "hello_usart.h"
+#endif
+
+void main_app_init(void) {
+#ifdef APP_HELLO_USART
+    hello_usart_init();
+#endif
+}
+
+void main_app_loop(void) {
+#ifdef APP_HELLO_USART
+    hello_usart_loop();
+#endif
+}
 
 void app_main(void) {
     // Application entry point
-    // This will be called from the board's main.c or run in its own thread
+    main_app_init();
     while (1) {
-        // App logic
+        main_app_loop();
     }
 }

@@ -1,8 +1,7 @@
 #ifndef MAIN_APP_H
 #define MAIN_APP_H
 
-#include "pin_definitions.h"
-
-void app_main(void);
+void main_app_init(void);
+void main_app_loop(void);
 
 #endif // MAIN_APP_H

@@ -1,9 +1,12 @@
+# Find all source files in the src directory
+file(GLOB APPS_SOURCES "src/*.c")
+
 # APPS will be a static library linked to the board executable
-add_library(apps STATIC src/main_app.c)
+add_library(apps STATIC ${APPS_SOURCES})
 
 # Add our board specific pin definitions to include path
 target_include_directories(apps PRIVATE ../BOARDS/${BOARD_NAME})
-target_include_directories(apps PRIVATE inc)
+target_include_directories(apps PUBLIC inc)
 
 # Link to our custom STM32 configuration interface library
 target_link_libraries(apps PRIVATE ${BOARD_NAME}_config)
