@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug / Flash (Cortex-Debug)",
+            "cwd": "${workspaceFolder}",
+            "executable": "${command:cmake.launchTargetPath}",
+            "request": "launch",
+            "type": "cortex-debug",
+            "runToEntryPoint": "main",
+            "servertype": "stlink",
+            "device": "STM32F401RE",
+            "preLaunchTask": "Build",
+            "showDevDebugOutput": "none"
+        }
+    ]
+}

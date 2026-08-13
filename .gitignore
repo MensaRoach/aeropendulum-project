@@ -5,6 +5,8 @@ CMakeUserPresets.json
 # VS Code settings that might be user specific
 .vscode/*
 !.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
 
 # STM32CubeIDE / CubeMX
 .mxproject
