@@ -11,4 +11,9 @@ CMakeUserPresets.json
 # STM32CubeIDE / CubeMX
 .mxproject
 *.launch
-*FLASH.ld
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/

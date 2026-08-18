@@ -1,0 +1,19 @@
+# Host-side dependencies for the aeropendulum telemetry tools.
+#
+#   python -m venv .venv
+#   pip install -r tools/requirements.txt
+#
+# Version floors below match the set this project is known to work with.
+
+# --- read_telemetry.py (serial transport + framing) ---
+pyserial>=3.5
+cobs>=1.2.2
+
+# --- visualize_imu.py (adds the 3D pose window) ---
+pygame-ce>=2.5
+# 3.1.6 is the floor that can locate the OpenGL framework on Apple Silicon.
+PyOpenGL>=3.1.6
+
+# --- imu_music/ (adds the synthesizer) ---
+numpy>=2.0
+sounddevice>=0.5

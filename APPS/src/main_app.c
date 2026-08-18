@@ -6,6 +6,10 @@
 #include "hello_usart.h"
 #endif
 
+#ifdef APP_BLINKY
+#include "blinky.h"
+#endif
+
 #ifdef APP_MPU6050_TELEMETRY
 #include "mpu6050_telemetry.h"
 #endif
@@ -14,6 +18,10 @@ void main_app_init(void)
 {
 #ifdef APP_HELLO_USART
     hello_usart_init();
+#endif
+
+#ifdef APP_BLINKY
+    blinky_init();
 #endif
 
 #ifdef APP_MPU6050_TELEMETRY
@@ -25,6 +33,10 @@ void main_app_loop(void)
 {
 #ifdef APP_HELLO_USART
     hello_usart_loop();
+#endif
+
+#ifdef APP_BLINKY
+    blinky_loop();
 #endif
 
 #ifdef APP_MPU6050_TELEMETRY

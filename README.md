@@ -19,7 +19,9 @@ This is a hobby embedded systems project to create an Aeropendulum. The project 
 To ensure cross-platform compatibility without overwriting each other's paths, this project uses `CMakeUserPresets.json`. 
 
 1. Create a `CMakeUserPresets.json` file in the root directory (this file is ignored by Git).
-2. Inherit from the shared presets and add your local `PATH` to your STM32CubeCLT installation:
+2. Inherit from the shared presets and add your local `PATH` to your STM32CubeCLT installation.
+
+**Windows** — CubeCLT installs under `C:/ST/`, and `PATH` entries are separated by `;`:
 
 ```json
 {
@@ -29,13 +31,35 @@ To ensure cross-platform compatibility without overwriting each other's paths, t
             "name": "Debug-Local",
             "inherits": "Debug",
             "environment": {
-                "PATH": "C:/ST/STM32CubeCLT/GNU-tools-for-STM32/bin;C:/ST/STM32CubeCLT/Ninja/bin;$penv{PATH}"
+                "PATH": "C:/ST/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin;C:/ST/STM32CubeCLT_1.21.0/Ninja/bin;C:/ST/STM32CubeCLT_1.21.0/CMake/bin;$penv{PATH}"
             }
         }
     ]
 }
 ```
-*(Replace the paths above with the actual path to your STM32CubeCLT installation)*
+
+**macOS / Linux** — CubeCLT installs under `/opt/ST/`, and `PATH` entries are separated by `:`:
+
+```json
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "Debug-Local",
+            "inherits": "Debug",
+            "environment": {
+                "PATH": "/opt/ST/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin:/opt/ST/STM32CubeCLT_1.21.0/Ninja/bin:/opt/ST/STM32CubeCLT_1.21.0/CMake/bin:$penv{PATH}"
+            }
+        }
+    ]
+}
+```
+
+*(Replace the version number with your actual STM32CubeCLT installation.)*
+
+> **Watch the separator.** Using `;` on macOS or `:` on Windows collapses the whole list into one
+> invalid entry. The build then fails with a confusing "compiler not found" error rather than
+> anything mentioning `PATH`.
 
 ### Building the Project
 
@@ -43,6 +67,35 @@ To ensure cross-platform compatibility without overwriting each other's paths, t
 cmake --preset Debug-Local
 cmake --build .build/Debug-Local
 ```
+
+## Host Tools
+
+The scripts in `tools/` read the board's telemetry stream over the ST-LINK virtual COM port. Set up a
+virtual environment and install the dependencies:
+
+```bash
+python -m venv .venv
+```
+
+Activate it (`\.venv\Scripts\activate` on Windows, `source .venv/bin/activate` on macOS/Linux), then:
+
+```bash
+pip install -r tools/requirements.txt
+```
+
+Find the board's port and start the reader:
+
+* **Windows** — a `COM*` port, listed by `mode` or in Device Manager.
+* **macOS** — `ls /dev/cu.usbmodem*`. Use the `cu.` device, not `tty.`; the `tty.` device blocks
+  waiting for carrier detect. No driver install is required.
+* **Linux** — `/dev/ttyACM*`. You may need to add yourself to the `dialout` group.
+
+```bash
+python tools/read_telemetry.py -p /dev/cu.usbmodem1103
+```
+
+`tools/visualize_imu.py` renders live 3D orientation, and `tools/imu_music/main.py` drives a
+synthesizer from the IMU (run that one from inside its own directory — it uses flat imports).
 
 ## Contributing
 When generating new code via STM32CubeIDE, ensure you are generating **LL (Low Level)** drivers, not HAL. Place custom application logic entirely inside the `APPS/` directory rather than modifying the generated `main.c`.
