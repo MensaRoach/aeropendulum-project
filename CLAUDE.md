@@ -167,5 +167,12 @@ device — `tty.` blocks on carrier detect), `/dev/ttyACM*` on Linux.
   used to exclude it via a `*FLASH.ld` rule; that rule has been removed. Don't reintroduce it, and
   don't "fix" a missing script by pointing the build at `STM32F401RETX_RAM.ld` — that links the image
   to run from RAM and it will not survive a power cycle.
+- **`.mxproject` is deliberately untracked.** It is CubeMX's manifest of what it generated last time,
+  and it stores paths with the host's separator — so tracking it means a whole-file diff every time
+  regeneration happens on a different OS. Each machine keeps its own local copy instead.
+  The cost: after **removing** a peripheral from the `.ioc`, a machine whose manifest is stale (or
+  absent, on a fresh clone) will not delete the now-orphaned `Core/Src/<periph>.c`. Since
+  `.cmake/stm32.cmake` globs `Core/Src/*.c`, an orphan keeps compiling into the firmware silently.
+  After any peripheral removal, check `git status` for generated files that should have disappeared.
 - Adding files to `APPS/src/` requires a reconfigure (glob), see above.
 - `.cmake/` and `.docs/` are dot-prefixed on purpose — some tooling and shell globs skip them.
