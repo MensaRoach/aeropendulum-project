@@ -123,7 +123,8 @@ The telemetry chain works on a bench. It has never seen a propeller.
 At the 2S hover point the prop turns ~10 000 RPM → imbalance tone at **167 Hz**, blade
 passing at **500 Hz**. Meanwhile in the current firmware:
 
-- [`mpu6050_telemetry.c:159`](../APPS/src/mpu6050_telemetry.c) writes `ACCEL_CONFIG` (0x1C) and
+- `mpu6050_telemetry.c:159` (deleted since this was written — `git show
+  11c4068^:APPS/src/mpu6050_telemetry.c`) writes `ACCEL_CONFIG` (0x1C) and
   `GYRO_CONFIG` (0x1B) but **never writes `CONFIG` (0x1A)**, so `DLPF_CFG` stays at its reset
   value of 0 — the widest setting, 260 Hz accelerometer bandwidth.
 - The loop samples at ~100 Hz (`LL_mDelay(10)`), so everything above 50 Hz folds back in.
@@ -210,6 +211,10 @@ standalone demos, but the aeropendulum needs the IMU driver, ESC driver, filter 
 controller as *separately testable modules* rather than one more `*_loop()`. Worth splitting
 `mpu6050_telemetry.c` into a reusable `mpu6050.c` driver first — the telemetry app then
 becomes one thin consumer of it, and the control app another.
+
+> **Since done, differently.** `mpu6050_telemetry.c` was deleted rather than split, and the driver
+> is being rewritten from scratch as a learning exercise. `DRIVERS/` now holds that structure as an
+> unimplemented scaffold. See [driver_development_plan.md](driver_development_plan.md).
 
 ---
 

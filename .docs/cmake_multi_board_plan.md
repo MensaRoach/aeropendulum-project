@@ -1,8 +1,18 @@
 # CMake multi-board / multi-MCU refactor plan
 
-**Status:** planned, not implemented · **Date:** 2026-08-25 · **Baseline commit:** `078244e`
+**Status: implemented.** · **Date:** 2026-08-25 · **Baseline commit:** `078244e`
 
-This is an implementation brief. It is written to be executed by another agent. Read the whole
+Shipped across `5d04274`, `ccf6b77` and `0e2fd23`. Kept as a historical implementation brief — the
+reasoning in §4 (rejected alternatives) and §7 (why not build every board at once) is still the
+justification for how the build works today, and §3.7's `CMakeUserPresets.json` template is still
+what [README.md](../README.md) hands out.
+
+> **Since diverged:** the root `CMakeLists.txt` snapshot in §3.4 and the `APPS/CMakeLists.txt` notes
+> in §3.5 predate `DRIVERS/`. The build now adds `DRIVERS` before `APPS`, and `apps` links `drivers`.
+> [CLAUDE.md](../CLAUDE.md) describes the current wiring; treat the snapshots below as the state at
+> the time of the refactor, not as current.
+
+This is an implementation brief. It was written to be executed by another agent. Read the whole
 document before touching a file. Follow the phases in order — each one ends in a check you can
 actually run.
 

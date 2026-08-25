@@ -4,8 +4,10 @@
 exercise. This is a process document, not a spec — it says what to figure out and in what
 order, not what the answers are. See the note at the bottom on spoiler sources.
 
-**Status:** planning. Both drivers were deleted / never existed as of the MPU6050 removal
-commit; see [CLAUDE.md](../CLAUDE.md) for current firmware state.
+**Status:** in progress on the IMU track. Phase 0 is answered (see
+[driver_development_log.md](driver_development_log.md)) and `DRIVERS/` holds a **scaffold with no
+implementation** — interfaces, contracts and `TODO(<milestone>)` tags referencing the milestone IDs
+below. The ESC track has not started. See [CLAUDE.md](../CLAUDE.md) for current firmware state.
 
 ---
 
@@ -47,6 +49,11 @@ single highest-value part of the whole plan and the first thing worth reviewing.
 
 Write the answers down before implementing either driver.
 
+> **Answered.** First pass and revision are both in
+> [driver_development_log.md](driver_development_log.md); the resulting contracts are encoded in
+> `DRIVERS/inc/`. Three of the first-pass answers were revised after scaffolding — which is the
+> point of writing them down where they can be argued with.
+
 ---
 
 ## IMU track
@@ -57,10 +64,24 @@ Write the answers down before implementing either driver.
       work is in the document you don't currently have — get it first.
 - [ ] **I1 — Refactor the bus plumbing, don't rewrite it.** The deleted driver's register
       read/write helpers and I2C bus-recovery logic are recoverable from git history
-      (`git log -- APPS/src/mpu6050_telemetry.c`) and are reusable, sensor-agnostic I2C
+      (`git show 11c4068^:APPS/src/mpu6050_telemetry.c`) and are reusable, sensor-agnostic I2C
       groundwork. First milestone: a clean driver skeleton with I2C read/write primitives and
       **no sensor-specific behaviour yet**. Exercises the Phase 0 contract on known-solid
       ground before register-map unknowns enter the picture.
+
+      *Skeleton done* — `DRIVERS/inc/` and `DRIVERS/src/`, compiling and linking, all bodies
+      still stubs. Two defects in the recovered code to fix while porting, or "refactor don't
+      rewrite" just inherits them:
+  - [ ] `MPU6050_ReadRegs` handles `size == 1`, loops `while (size > 3)`, then unconditionally
+        reads three bytes — so `size == 2` (or `0`) writes past the caller's buffer. It never
+        fired because the only call site passed 14; a general-purpose bus gets called with 2
+        constantly. The F4 two-byte read also needs the POS bit set before ADDR is cleared.
+  - [ ] Every wait in it is an unbounded `while (!flag);`. Each one needs a deadline.
+- [ ] **I1b — Measure before optimising.** Set the bus to 400 kHz and instrument a 14-byte burst
+      read with `DWT->CYCCNT` or a GPIO toggle. Predicted cost is ~1.56 ms at 100 kHz against
+      ~0.39 ms at 400 kHz, out of 4 ms at 250 Hz — but predicted is not measured, and this number
+      decides whether the async path is worth building at all. One CubeMX field versus a state
+      machine.
 - [ ] **I2 — Configuration coverage.** From the register map's configuration chapter,
       enumerate everything that affects the numbers coming out of the device. For each: does
       it belong in the driver's runtime config, or is it fixed at init? Then check — which
@@ -69,6 +90,15 @@ Write the answers down before implementing either driver.
       free STM32 pin, and is it worth using? What does polling cost vs. an interrupt? If
       sampling faster than the device actually updates, how would that be detected rather than
       just assumed away?
+
+      Two constraints that are not obvious until you hit them:
+  - [ ] The F401 carries the **I2C v1** peripheral. DMA moves the *data* phase only — START,
+        address, register pointer and repeated START must be driven by the CPU, which for a
+        non-blocking driver means the event interrupt. `I2C1_EV_IRQn` and `I2C1_ER_IRQn` are
+        **not currently enabled** in the `.ioc`; enabling them is a prerequisite, not a detail.
+  - [ ] Nearly every "STM32 I2C DMA" example online targets the **v2** peripheral
+        (F0/F3/F7/L4/G4), where `NBYTES` and `AUTOEND` make this straightforward. None of it
+        transfers to this chip. Budget for that before assuming the problem is well-trodden.
 - [ ] **I4 — Calibration.** Gyro bias at minimum. When does it run (boot only? on demand?).
       How is "the device is actually still" established? Where does a calibration result live
       across a reset, and how is a stored value known to still be valid?
@@ -85,6 +115,16 @@ Each rung should pass before moving to the next.
       telemetry frame) matches the intended rate — don't trust the nominal number
 - [ ] Sign convention confirmed empirically: a positive reading on an axis means what the
       downstream math assumes it means
+
+**Failure rungs.** The ESC track below takes the position that a failsafe which has never been
+triggered is not a verified failsafe. The same applies here — a bus driver whose error paths have
+never executed is a bus driver whose error paths do not work.
+
+- [ ] Pull SDA off mid-run: the driver reports an error and recovers, rather than hanging
+- [ ] Power-cycle the sensor with the MCU still running: the driver notices and re-initialises
+- [ ] Remove a pull-up: reports a distinguishable failure rather than silently returning stale data
+- [ ] Reset the MCU while the sensor is mid-transfer, repeatedly — this is the exact case bus
+      recovery exists for, so it is the one case where it must be seen working
 
 ---
 
@@ -144,19 +184,43 @@ near-zero risk.
 
 ---
 
+## Integration — where the two tracks meet
+
+The tracks are independent right up until they aren't. Both ladders above end with a working
+driver in isolation and nothing that joins them, so this is the gap between "two drivers" and
+"an aeropendulum".
+
+- [ ] **N0 — What happens when a sample is late or missing?** This is a Phase 0 question that
+      only bites here: if the IMU read fails at time *t*, does the ESC hold last throttle, decay
+      it, or disarm? Each is defensible; silently reusing the previous sample is not, because it
+      turns a sensor fault into a controller that is confidently wrong. Decide it before the two
+      drivers are in the same loop, not during the first divergence.
+- [ ] **N1 — Fixed-rate control tick.** Both drivers currently assume the caller sets the pace.
+      Something has to establish the actual period, and it should be a timer, not a delay loop
+      whose period is "however long the last iteration took plus 10 ms".
+- [ ] **N2 — Open loop with logging.** Fixed throttle on a guarded, clamped stand while the IMU
+      logs. Confirms the two drivers coexist — shared bus, interrupt priorities, timing budget —
+      before a controller is added to the list of things that could be wrong.
+- [ ] **N3 — Close the loop.** Only after N2 produces clean data at the intended rate.
+
 ## Cross-cutting practices
 
 - [ ] **One test app per driver**, using the existing `app_selector.h` pattern — an app that
       exercises nothing but the one driver. Keeps the driver API honest: if the test app has
       to reach around the API to do something, the API is wrong. Remember: a new `.c` in
-      `APPS/src/` needs a CMake **reconfigure**, not just a rebuild (glob-based sources).
+      `APPS/src/` or `DRIVERS/src/` needs a CMake **reconfigure**, not just a rebuild
+      (glob-based sources).
+
+      `mpu6050_probe()` exists precisely because the first rung of the IMU ladder below is a
+      WHO_AM_I check — if the test app had to reach past the API to read that register, the API
+      would already have failed this test.
 - [ ] **Host command path.** Both drivers eventually benefit from one, and it makes ESC
       testing much less painful than hand-coded test sequences. `cobs_decode()` already exists
       in [cobs.c](../APPS/src/cobs.c), unused. Decide whether to build the command path now or
       defer it.
-- [ ] **Decisions log.** One line per non-obvious choice plus the reasoning behind it, per
+- [x] **Decisions log.** One line per non-obvious choice plus the reasoning behind it, per
       driver. This is what turns a later review into feedback on the *thinking*, not just the
-      syntax.
+      syntax. → [driver_development_log.md](driver_development_log.md).
 - [ ] **One branch per driver, one commit per milestone above.** Makes the eventual review
       read as a sequence of reasoned steps instead of one large diff.
 
@@ -185,12 +249,23 @@ feasibility pass — gives away several answers this plan asks to be derived ind
 specific MPU6050 configuration register, the timer clock frequency, a candidate timer/pin
 pairing, a target PWM frequency, and roughly what the ESC arming sequence needs.
 
-**Skip sections 5 ("The real risk: vibration"), 6 ("Control feasibility"), and 7 ("Firmware
-gap analysis") of that document** until Phase 0 through E2/I3 above have been worked through
-independently. Sections 1–4, 8, 9, and 10 (parts inventory, sizing, BOM, safety, build order)
-don't spoil anything driver-specific and are safe to read any time.
+**Skip sections 5 ("Top risk: vibration will forge the angle"), 6 ("Control feasibility:
+comfortably inside the envelope"), and 7 ("Firmware gap analysis") of that document** until
+Phase 0 through E2/I3 above have been worked through independently. Sections 1–4, 8, 9, and 10
+(verdict, parts inventory, sizing, battery choice, BOM, safety, build order) don't spoil
+anything driver-specific and are safe to read any time — §9 in particular should be read
+*before* any hardware is powered, not after.
+
+[`hardware_feasibility.md`](hardware_feasibility.md) is a superseded earlier pass, but it still
+spoils **E2**: it names a specific ESC signalling protocol and asserts it as the choice, which is
+the decision E2 asks to be reasoned about from the tradeoffs. Skip it — nothing in it is both
+current and unique.
 
 [`imu_data_processing.md`](imu_data_processing.md) is also a spoiler source for the IMU track
 specifically — it documents the device address, several register addresses (including the
 DLPF register), the burst-read start register, and the scaling constants. Written pre-rewrite
 as a data-pipeline reference; treat it the same way.
+
+Note that this applies to AI assistants working in the repo too — [CLAUDE.md](../CLAUDE.md)
+carries the same instruction, so an agent asked a general question here should not volunteer
+these answers unprompted.

@@ -2,6 +2,23 @@
 
 This document traces every transformation applied to the raw MPU6050 data — from the bytes arriving over USART to the roll, pitch, yaw, and telemetry values rendered on screen — and explains the mathematical and physical reasoning behind each step.
 
+> [!IMPORTANT]
+> **Status: reference, describing firmware that no longer exists.**
+>
+> Written before the MPU6050 driver was deleted for a from-scratch rewrite. Sections 1.1 and 1.2
+> describe firmware behaviour in the present tense that is **not currently on the board** — the
+> driver in `DRIVERS/` is an unimplemented scaffold. The host-side half (§1.3 onward) is still
+> live: `tools/` implements exactly this, and the wire format described here is the contract a
+> replacement driver has to match or else update `tools/` alongside it.
+>
+> The mathematics in §2–§9 is independent of the firmware and remains correct.
+>
+> **Spoiler warning.** [driver_development_plan.md](driver_development_plan.md) treats this file as
+> a spoiler source for the IMU track: it gives away the device address, several register addresses
+> including the DLPF register, the burst-read start register, and the scaling constants. If you are
+> working through that plan, §1.1 and §2 answer questions you were meant to derive from the
+> register map.
+
 ---
 
 ## 1. Raw Data Acquisition

@@ -1,4 +1,20 @@
-# Aeropendulum Feasibility Analysis
+# Aeropendulum Feasibility Analysis (superseded)
+
+> [!CAUTION]
+> **Superseded by [feasibility_analysis.md](feasibility_analysis.md). Do not act on this document.**
+>
+> It is kept only as a record of the first pass. The two disagree on decisions that damage hardware:
+>
+> | Topic | This document | [feasibility_analysis.md](feasibility_analysis.md) |
+> |---|---|---|
+> | Battery / supply | "12V is ideal, mimicking a 3S LiPo"; recommends an ATX PSU, LED-strip supply or Xbox brick | **2S LiPo.** A bench PSU cannot sink the regenerative current from BLHeli_S damped-light braking — a documented way to trip OVP or destroy the ESC |
+> | Voltage headroom | Not discussed | 4S with this motor/prop pair is an over-prop condition that cooks the motor; §4 carries an explicit warning |
+> | 45 A ESC | "will work perfectly fine" | Agreed, but only alongside a bulk capacitor the ESC may not have shipped with |
+> | Vibration | "critical", one paragraph | The top project risk, quantified, with ranked mitigations (§5) |
+> | ESC protocol | Names a specific digital protocol as the choice | Left open — it is a decision the driver plan asks to be reasoned about (**spoiler**, see the plan) |
+>
+> The power-supply section below is the most dangerous part and is wrong. Everything unique to this
+> document has been superseded rather than merged.
 
 This document provides a feasibility analysis for building an aeropendulum based on the components found in the project's `.docs` directory. An aeropendulum is a pendulum actuated by a propeller, often used as an educational testbed for embedded systems and control theory (e.g., PID or LQR control).
 

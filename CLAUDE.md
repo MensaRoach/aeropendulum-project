@@ -6,13 +6,20 @@ Guidance for Claude Code agents working in this repository.
 
 A hobby embedded project building an **aeropendulum** (propeller-driven pendulum, controlled attitude).
 Firmware runs on a **NUCLEO-F401RE** (STM32F401RET6, Cortex-M4F @ 84 MHz) using **STM32 LL drivers**
-(not HAL). Host-side Python tools consume the board's serial telemetry.
+(not HAL). Host-side Python tools in `tools/` consume the board's serial telemetry — though nothing
+currently emits any; see below.
 
-Current state: the MPU6050 firmware driver has been **deliberately deleted**. It is being rewritten
-from scratch as a learning exercise, alongside an ESC driver that does not exist yet. What remains on
-the board is USART output, COBS framing, and two trivial demo apps. The host-side Python tools in
-`tools/` were kept and still expect the old frame format — see [Telemetry protocol](#telemetry-protocol).
-No motor drive and no control loop exist yet — that is the work still ahead.
+Current state: the MPU6050 firmware driver was **deliberately deleted** and is being rewritten from
+scratch as a learning exercise, alongside an ESC driver that does not exist yet. `DRIVERS/` now holds
+a **scaffold for that rewrite — interfaces and contracts only, no implementation**: every function
+returns `DRV_ERR_STATE` and carries a `TODO(<milestone>)` pointing at
+[.docs/driver_development_plan.md](.docs/driver_development_plan.md). It compiles and links; it does
+nothing. See [DRIVERS/README.md](DRIVERS/README.md) for the layering rule.
+
+What actually runs on the board is USART output, COBS framing, and two trivial demo apps. The
+host-side Python tools in `tools/` were kept and still expect the old frame format — see
+[Telemetry protocol](#telemetry-protocol). No sensor reads, no motor drive and no control loop exist
+yet — that is the work still ahead.
 
 ## Build & flash
 
@@ -46,13 +53,38 @@ app exists again — the telemetry stream decodes on the host.
 
 | Path | Role |
 |---|---|
-| `APPS/` | All custom logic. Compiles to static lib `apps`, linked into the board executable. **Write code here.** |
+| `APPS/` | Application logic and wiring. Compiles to static lib `apps`, linked into the board executable. |
+| `DRIVERS/` | Peripheral and device drivers (`inc/` + `src/`). Compiles to static lib `drivers`. Currently a scaffold — see [DRIVERS/README.md](DRIVERS/README.md). |
 | `BOARDS/NUCLEO-F401RE/` | STM32CubeIDE-generated board support (`Core/`, `Drivers/`, `.ioc`, linker scripts, `pin_definitions.h`, `board.cmake`). Regenerate via CubeMX; don't hand-edit. |
 | `BOARDS/<board>/board.cmake` | Board manifest defining MCU family, device, CPU profile, driver mode, debug target. |
 | `.cmake/` | `gcc-arm-none-eabi.cmake` (toolchain), `cortex_profiles.cmake` (CPU flag mappings), `stm32.cmake` (`add_stm32_board()` wrapper and board discovery). |
 | `tools/` | Host-side Python: telemetry reader, 3D pose visualizer, IMU-driven synth. |
-| `.docs/` | MCU reference PDFs and `imu_data_processing.md` (detailed math writeup of the whole IMU pipeline). |
+| `.docs/` | Component datasheets and reference PDFs, plus the project's own writeups — see [Documentation map](#documentation-map). |
 | `.build/` | Build output (gitignored). |
+
+## Documentation map
+
+| Document | Status | Notes |
+|---|---|---|
+| [.docs/feasibility_analysis.md](.docs/feasibility_analysis.md) | **Authoritative** on hardware, sizing, powertrain and safety | Dated, with a firmware baseline. Its headline finding is a battery-voltage decision. **Spoiler source** — see below. |
+| [.docs/hardware_feasibility.md](.docs/hardware_feasibility.md) | **Superseded** | An earlier, coarser pass. Kept for history; carries a supersession banner. Do not cite it. |
+| [.docs/driver_development_plan.md](.docs/driver_development_plan.md) | Active | The process document for the ESC + IMU rewrite. Milestone IDs (`I0`–`I4`, `E0`–`E4`) are referenced from `TODO()` tags in `DRIVERS/`. |
+| [.docs/driver_development_log.md](.docs/driver_development_log.md) | Active | Decisions log. One entry per non-obvious choice, with reasoning. |
+| [.docs/imu_data_processing.md](.docs/imu_data_processing.md) | Reference, **describes deleted firmware** | The math is still correct and the host tools still implement it. The firmware it describes no longer exists. **Spoiler source.** |
+| [.docs/cmake_multi_board_plan.md](.docs/cmake_multi_board_plan.md) | **Implemented** | Historical implementation brief. Kept for the reasoning in §4 (rejected alternatives) and §7. |
+| [DRIVERS/README.md](DRIVERS/README.md) | Active | Layering rule and driver conventions. |
+
+### Spoilers
+
+The driver rewrite is a **deliberate learning exercise**. `driver_development_plan.md` asks for several
+answers to be derived from primary sources rather than looked up, and names the documents that give
+those answers away: sections 5–7 of `feasibility_analysis.md`, all of `hardware_feasibility.md`, and
+`imu_data_processing.md`.
+
+If you are an agent working here: don't volunteer register addresses, scale factors, the device
+address, timer clock frequencies, a timer/pin pairing, a target PWM frequency, or the ESC arming
+sequence unless asked for them directly. Reading these files to answer a question about the *repo* is
+fine; reproducing their answers into a reply is what defeats the exercise.
 
 ## How the build wires together
 
@@ -65,9 +97,22 @@ app exists again — the telemetry stream decodes on the host.
 - globs `Core/Src/*.c`, `Drivers/<FAMILY_DIR>_HAL_Driver/Src/*.c`, and `Core/Startup/*.s` with `CONFIGURE_DEPENDS` into the executable target `${BOARD_NAME}`;
 - finds the linker script (`*FLASH.ld` or manifest override) and sets per-board link options including `-Wl,-Map=$<TARGET_FILE_DIR:${BOARD}>/${BOARD}.map`.
 
-`APPS/CMakeLists.txt` globs `src/*.c` with `CONFIGURE_DEPENDS` into `apps` and links it into the board executable.
+`DRIVERS/CMakeLists.txt` and `APPS/CMakeLists.txt` each glob `src/*.c` with `CONFIGURE_DEPENDS` into
+the static libs `drivers` and `apps`, and link both into the board executable. The root
+`CMakeLists.txt` adds `DRIVERS` **before** `APPS`, because `apps` links `drivers`.
 
 Any new library target must link `${BOARD_NAME}_config` to inherit the MCU flags and include paths.
+
+### Where code goes
+
+| Kind of code | Directory |
+|---|---|
+| Peripheral drivers (I2C, USART, timers) and device drivers (IMU, ESC) | `DRIVERS/` |
+| Apps, wiring, control logic — anything that picks a concrete peripheral | `APPS/` |
+
+`drivers` deliberately has **no include path to `BOARDS/${BOARD_NAME}`**, so driver sources cannot
+reach `pin_definitions.h`. Choosing which peripheral a device sits on is the application's job; the
+missing include path is what makes that rule enforced rather than merely documented.
 
 ## Application model
 
@@ -121,21 +166,42 @@ Peripheral instances are aliased in [BOARDS/NUCLEO-F401RE/pin_definitions.h](BOA
 - `TELEMETRY_USART` = USART2 on PA2/PA3 (routed to the ST-LINK virtual COM port)
 - `STATUS_LED_PORT` / `STATUS_LED_PIN` = LD2 on PA5
 
-I2C1 is still declared in the `.ioc` and initialised by `MX_I2C1_Init()` (100 kHz on PB6/PB7, AF4,
-open-drain), but it has **no application alias** — the sensor-specific defines were removed along with
-the driver. A new I2C device needs its own aliases added to `pin_definitions.h`.
+- `IMU_I2C` = I2C1 on PB6/PB7 (AF4, open-drain, 100 kHz), with `IMU_I2C_PORT` / `IMU_I2C_SCL_PIN` /
+  `IMU_I2C_SDA_PIN` / `IMU_I2C_AF` alongside it. The GPIO aliases exist for **bus recovery only** —
+  normal traffic goes through the peripheral.
+
+**`MX_I2C1_Init()` leaves the peripheral disabled.** `LL_I2C_Init()` ends with `LL_I2C_Disable()` and
+never re-enables, so something has to switch I2C1 on before use. That is the seam this project uses to
+answer "who owns the peripheral": **CubeMX owns configuration, the driver owns enable and recovery.**
+The same question is worth re-checking for USART2 rather than assumed to match.
 
 The `.ioc` only declares USART2, I2C1 and SWD, so **`MX_GPIO_Init()` configures every other pin —
 PA5 included — as analog**. An app that wants a GPIO must call `LL_GPIO_Init()` on it first; see
 `blinky_init()`. The port clocks are already enabled for GPIOA/B/C/D/H, so only the pin mode needs
 setting.
 
-The deleted driver ran a **bit-banged I2C bus recovery** before enabling the peripheral, because an
-I2C slave can be left holding SDA low across an MCU reset and then wedges the bus. Nothing does this
-any more — a new I2C driver will need its own answer to that failure mode.
+An I2C slave can be left holding SDA low across an MCU reset, wedging the bus before the peripheral is
+even enabled; the escape is a **bit-banged bus recovery**. The deleted driver did this and the
+recovered code is in git history (`git show 11c4068^:APPS/src/mpu6050_telemetry.c`). `i2c_bus_recover()`
+is declared for it in `DRIVERS/` but **not yet implemented**.
 
-All peripheral access in `APPS/` is blocking polled LL (`while (!LL_..._IsActiveFlag_...())`) —
-no interrupts or DMA are in use yet.
+**DMA is configured but unused.** The `.ioc` maps DMA1 Stream0 Ch1 → I2C1_RX and Stream6 Ch1 → I2C1_TX,
+and `MX_DMA_Init()` enables both NVIC lines — but `DMA1_Stream0_IRQHandler` / `DMA1_Stream6_IRQHandler`
+in `stm32f4xx_it.c` have empty `USER CODE` blocks, so nothing responds. Two things to know before
+building on it:
+
+- **`I2C1_EV_IRQn` and `I2C1_ER_IRQn` are not enabled.** The F401 has the **I2C v1** peripheral, where
+  DMA moves the *data* phase only — START, address, register pointer and repeated START must be driven
+  by the CPU, which for a non-blocking driver means the event interrupt. Enabling those two NVIC lines
+  in CubeMX is a prerequisite for any async I2C path. Multi-byte DMA reception also needs the CR2 LAST
+  bit (`LL_I2C_EnableLastDMA`).
+- **Most "STM32 I2C DMA" examples online target I2C v2** (F0/F3/F7/L4/G4), where `NBYTES` and `AUTOEND`
+  make this straightforward. None of that transfers to this chip.
+
+Everything that currently executes uses blocking polled LL (`while (!LL_..._IsActiveFlag_...())`).
+Driver interrupt hooks are named `<module>_on_*_irq()` and are meant to be called from the `USER CODE`
+blocks in `stm32f4xx_it.c`, so drivers never define IRQ handlers themselves and CubeMX regeneration
+cannot clobber the wiring.
 
 ## Host tools
 
@@ -164,10 +230,18 @@ device — `tty.` blocks on carrier detect), `/dev/ttyACM*` on Linux.
    with its own CMake; regenerating with CubeMX's CMake output will break it.
 3. **Keep application code out of generated files.** The only intended edit to `main.c` is the existing
    `app_main()` call inside a `USER CODE` block. Anything else goes in `APPS/`.
-4. Braces on their own line, 4-space indent, `snake_case` for app functions, `MODULE_PascalCase` for
-   static hardware helpers (e.g. `<Device>_ReadRegs`). Headers use `#ifndef`/`#define` guards.
-   Note: the only examples of that helper convention lived in the deleted MPU6050 driver, so the
-   remaining apps do not currently demonstrate it.
+4. Braces on their own line, 4-space indent, `snake_case` for public functions, `MODULE_PascalCase`
+   for static hardware helpers (e.g. `MPU6050_ReadRegs`). Headers use `#ifndef`/`#define` guards.
+   `DRIVERS/` demonstrates both.
+5. **Driver conventions** (established in `DRIVERS/`, see its README for the reasoning):
+   - Every driver entry point returns `drv_status_t`, never `bool` — a caller that only learns "it
+     failed" cannot choose between retrying, running bus recovery, and disarming.
+   - Every blocking call takes a timeout. No unbounded `while (!flag);` anywhere.
+   - I2C device addresses are **7-bit, right-aligned, never pre-shifted**.
+   - Stubs return `DRV_ERR_STATE`, never `DRV_OK`. A stub that reports success is worse than one that
+     fails, because the caller carries on against a device that was never configured.
+   - Device drivers depend on the abstract transport header; platform drivers implement it. Neither
+     includes the other.
 
 ## Adding a board
 
