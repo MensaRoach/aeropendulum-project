@@ -14,10 +14,7 @@
 #define STATUS_LED_PORT GPIOA
 #define STATUS_LED_PIN LL_GPIO_PIN_5
 
-// I2C Configuration
-#define MPU6050_I2C I2C1
-#define MPU6050_I2C_PORT GPIOB
-#define MPU6050_SCL_PIN LL_GPIO_PIN_6
-#define MPU6050_SDA_PIN LL_GPIO_PIN_7
+// I2C1 is declared in the .ioc and initialised by MX_I2C1_Init(), but no
+// application-level alias is defined for it yet.
 
 #endif // PIN_DEFINITIONS_H

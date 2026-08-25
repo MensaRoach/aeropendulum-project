@@ -10,10 +10,6 @@
 #include "blinky.h"
 #endif
 
-#ifdef APP_MPU6050_TELEMETRY
-#include "mpu6050_telemetry.h"
-#endif
-
 void main_app_init(void)
 {
 #ifdef APP_HELLO_USART
@@ -22,10 +18,6 @@ void main_app_init(void)
 
 #ifdef APP_BLINKY
     blinky_init();
-#endif
-
-#ifdef APP_MPU6050_TELEMETRY
-    mpu6050_telemetry_init();
 #endif
 }
 
@@ -37,10 +29,6 @@ void main_app_loop(void)
 
 #ifdef APP_BLINKY
     blinky_loop();
-#endif
-
-#ifdef APP_MPU6050_TELEMETRY
-    mpu6050_telemetry_loop();
 #endif
 }
 

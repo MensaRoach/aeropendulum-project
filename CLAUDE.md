@@ -8,7 +8,10 @@ A hobby embedded project building an **aeropendulum** (propeller-driven pendulum
 Firmware runs on a **NUCLEO-F401RE** (STM32F401RET6, Cortex-M4F @ 84 MHz) using **STM32 LL drivers**
 (not HAL). Host-side Python tools consume the board's serial telemetry.
 
-Current state: telemetry pipeline works end to end (MPU6050 → I2C → COBS → USART → Python).
+Current state: the MPU6050 firmware driver has been **deliberately deleted**. It is being rewritten
+from scratch as a learning exercise, alongside an ESC driver that does not exist yet. What remains on
+the board is USART output, COBS framing, and two trivial demo apps. The host-side Python tools in
+`tools/` were kept and still expect the old frame format — see [Telemetry protocol](#telemetry-protocol).
 No motor drive and no control loop exist yet — that is the work still ahead.
 
 ## Build & flash
@@ -36,8 +39,8 @@ preset's environment block. Invoking `cmake` directly from a shell needs the ful
 Output is `.build/<preset>/NUCLEO-F401RE.elf` plus `Aeropendulum.map`. Flashing/debugging goes through
 the VS Code `Debug / Flash (Cortex-Debug)` launch config (`servertype: stlink`), which runs the `Build` task first.
 
-There is **no test suite** and no linter configured. Verification is: it compiles, and the telemetry
-stream decodes on the host.
+There is **no test suite** and no linter configured. Verification is: it compiles, and — once a sensor
+app exists again — the telemetry stream decodes on the host.
 
 ## Layout
 
@@ -74,8 +77,7 @@ Applications are selected **at compile time**, not at runtime. Exactly one `#def
 
 ```c
 // #define APP_HELLO_USART
-// #define APP_BLINKY
-#define APP_MPU6050_TELEMETRY
+#define APP_BLINKY
 ```
 
 [APPS/src/main_app.c](APPS/src/main_app.c) `#ifdef`-dispatches into `<app>_init()` / `<app>_loop()`.
@@ -89,22 +91,26 @@ Every `APPS/src/*.c` is compiled into `libapps.a` regardless of which app is sel
 only decide what gets *called*, and the linker's `--gc-sections` drops the rest. So a broken app
 still breaks the build even when it is not the selected one.
 
-The three implemented apps are `APP_HELLO_USART` (prints `Hello` over USART2),
-`APP_BLINKY` (toggles LD2 at 1 Hz — the quickest "is the board alive" check), and
-`APP_MPU6050_TELEMETRY` (the real telemetry pipeline, currently selected).
+The two implemented apps are `APP_HELLO_USART` (prints `Hello` over USART2) and `APP_BLINKY`
+(toggles LD2 at 1 Hz — the quickest "is the board alive" check, and currently selected). A third,
+`APP_MPU6050_TELEMETRY`, was removed along with its driver; see the note at the top of this file.
 
 ## Telemetry protocol
 
-`MPU6050_Data_t` (packed, 14 bytes: 7 × `int16_t` — ax, ay, az, temp, gx, gy, gz, little-endian) is
-COBS-encoded and sent over USART2 followed by a `0x00` frame delimiter, at roughly 100 Hz
-(`LL_mDelay(10)` in the loop).
+No firmware currently emits telemetry — the app that did was deleted. This section records the format
+the **host tools still expect**, so that a replacement driver either matches it or `tools/` gets
+updated alongside it.
+
+The historical payload was a packed 14-byte struct (7 × `int16_t` — ax, ay, az, temp, gx, gy, gz,
+little-endian), COBS-encoded and sent over USART2 followed by a `0x00` frame delimiter at roughly 100 Hz.
 
 Wire settings are **115200 8E1** — CubeMX configures USART2 as `DATAWIDTH_9B` + `PARITY_EVEN`, which
 is 8 data bits plus a parity bit on the wire. Host readers must open the port with `PARITY_EVEN`,
 or every frame fails to decode.
 
-The firmware COBS implementation is [APPS/src/cobs.c](APPS/src/cobs.c) (encode + decode, no dependencies);
-the host uses the `cobs` PyPI package. Sensor ranges are ±2 g (16384 LSB/g) and ±250 °/s (131 LSB/dps).
+The firmware COBS implementation is [APPS/src/cobs.c](APPS/src/cobs.c) (encode + decode, no dependencies)
+and was **kept** — it is sensor-agnostic, and `cobs_decode()` is currently unused. The host uses the
+`cobs` PyPI package.
 [.docs/imu_data_processing.md](.docs/imu_data_processing.md) documents the full chain including the
 complementary filter — read it before touching orientation math.
 
@@ -114,18 +120,20 @@ Peripheral instances are aliased in [BOARDS/NUCLEO-F401RE/pin_definitions.h](BOA
 **always use those aliases in `APPS/`, never the raw `USART2` / `I2C1` handles.**
 
 - `TELEMETRY_USART` = USART2 on PA2/PA3 (routed to the ST-LINK virtual COM port)
-- `MPU6050_I2C` = I2C1 @ 100 kHz on PB6 (SCL) / PB7 (SDA), AF4, open-drain
 - `STATUS_LED_PORT` / `STATUS_LED_PIN` = LD2 on PA5
-- MPU6050 I2C address `0xD0` (8-bit write form of 0x68)
+
+I2C1 is still declared in the `.ioc` and initialised by `MX_I2C1_Init()` (100 kHz on PB6/PB7, AF4,
+open-drain), but it has **no application alias** — the sensor-specific defines were removed along with
+the driver. A new I2C device needs its own aliases added to `pin_definitions.h`.
 
 The `.ioc` only declares USART2, I2C1 and SWD, so **`MX_GPIO_Init()` configures every other pin —
 PA5 included — as analog**. An app that wants a GPIO must call `LL_GPIO_Init()` on it first; see
 `blinky_init()`. The port clocks are already enabled for GPIOA/B/C/D/H, so only the pin mode needs
 setting.
 
-`mpu6050_telemetry_init()` runs a **bit-banged I2C bus recovery** (9 SCL pulses + manual STOP) before
-enabling the peripheral, because the MPU6050 can be left holding SDA low across an MCU reset. Keep
-that in place when reworking init.
+The deleted driver ran a **bit-banged I2C bus recovery** before enabling the peripheral, because an
+I2C slave can be left holding SDA low across an MCU reset and then wedges the bus. Nothing does this
+any more — a new I2C driver will need its own answer to that failure mode.
 
 All peripheral access in `APPS/` is blocking polled LL (`while (!LL_..._IsActiveFlag_...())`) —
 no interrupts or DMA are in use yet.
@@ -158,7 +166,9 @@ device — `tty.` blocks on carrier detect), `/dev/ttyACM*` on Linux.
 3. **Keep application code out of generated files.** The only intended edit to `main.c` is the existing
    `app_main()` call inside a `USER CODE` block. Anything else goes in `APPS/`.
 4. Braces on their own line, 4-space indent, `snake_case` for app functions, `MODULE_PascalCase` for
-   static hardware helpers (e.g. `MPU6050_ReadRegs`). Headers use `#ifndef`/`#define` guards.
+   static hardware helpers (e.g. `<Device>_ReadRegs`). Headers use `#ifndef`/`#define` guards.
+   Note: the only examples of that helper convention lived in the deleted MPU6050 driver, so the
+   remaining apps do not currently demonstrate it.
 
 ## Gotchas
 

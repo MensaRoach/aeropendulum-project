@@ -8,7 +8,6 @@
 // and run on the board.
 
 // #define APP_HELLO_USART
-// #define APP_BLINKY
-#define APP_MPU6050_TELEMETRY
+#define APP_BLINKY
 
 #endif // APP_SELECTOR_H
