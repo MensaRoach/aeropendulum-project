@@ -19,25 +19,25 @@ No motor drive and no control loop exist yet — that is the work still ahead.
 Toolchain is **STM32CubeCLT** (arm-none-eabi-gcc + Ninja). Build directories live in `.build/<presetName>/`.
 
 ```bash
-cmake --preset Debug-Local && cmake --build .build/Debug-Local
+cmake --preset NUCLEO-F401RE-Debug-Local && cmake --build .build/NUCLEO-F401RE-Debug-Local
 ```
 
-`Debug-Local` is **not** in `CMakePresets.json` — it lives in `CMakeUserPresets.json`, which is
-gitignored because it is machine-specific. It inherits `Debug` and prepends the local STM32CubeCLT
+`<board>-Debug-Local` presets are **not** in `CMakePresets.json` — they live in `CMakeUserPresets.json`, which is
+gitignored because it is machine-specific. It inherits the base board preset (e.g. `NUCLEO-F401RE-Debug`) and prepends the local STM32CubeCLT
 `bin` directories to `PATH`; see [README.md](README.md) for the template. On this machine CubeCLT is
-at `C:/ST/STM32CubeCLT_1.21.0`, and `Release-Local` exists alongside it. On a machine without that
+at `C:/ST/STM32CubeCLT_1.21.0`, and `NUCLEO-F401RE-Release-Local` exists alongside it. On a machine without that
 file, either write one or use the shared presets with the toolchain already on `PATH`:
 
 ```bash
-cmake --preset Debug && cmake --build .build/Debug
+cmake --preset NUCLEO-F401RE-Debug && cmake --build .build/NUCLEO-F401RE-Debug
 ```
 
 `cmake`, `ninja`, and `arm-none-eabi-gcc` are **not** on the system `PATH` here — they come from the
 preset's environment block. Invoking `cmake` directly from a shell needs the full path
 (`C:/ST/STM32CubeCLT_1.21.0/CMake/bin/cmake.exe`).
 
-Output is `.build/<preset>/NUCLEO-F401RE.elf` plus `Aeropendulum.map`. Flashing/debugging goes through
-the VS Code `Debug / Flash (Cortex-Debug)` launch config (`servertype: stlink`), which runs the `Build` task first.
+Output is `.build/<preset>/NUCLEO-F401RE.elf` plus `NUCLEO-F401RE.map` (placed next to the `.elf`). Flashing/debugging goes through
+the VS Code `Debug / Flash NUCLEO-F401RE (Cortex-Debug)` launch config (`servertype: stlink`), which runs the `Build` task first.
 
 There is **no test suite** and no linter configured. Verification is: it compiles, and — once a sensor
 app exists again — the telemetry stream decodes on the host.
@@ -47,26 +47,25 @@ app exists again — the telemetry stream decodes on the host.
 | Path | Role |
 |---|---|
 | `APPS/` | All custom logic. Compiles to static lib `apps`, linked into the board executable. **Write code here.** |
-| `BOARDS/NUCLEO-F401RE/` | STM32CubeIDE-generated board support (`Core/`, `Drivers/`, `.ioc`, linker scripts). Regenerate via CubeMX; don't hand-edit. |
-| `.cmake/` | `gcc-arm-none-eabi.cmake` (toolchain) + `stm32.cmake` (the `add_stm32_board()` wrapper). |
+| `BOARDS/NUCLEO-F401RE/` | STM32CubeIDE-generated board support (`Core/`, `Drivers/`, `.ioc`, linker scripts, `pin_definitions.h`, `board.cmake`). Regenerate via CubeMX; don't hand-edit. |
+| `BOARDS/<board>/board.cmake` | Board manifest defining MCU family, device, CPU profile, driver mode, debug target. |
+| `.cmake/` | `gcc-arm-none-eabi.cmake` (toolchain), `cortex_profiles.cmake` (CPU flag mappings), `stm32.cmake` (`add_stm32_board()` wrapper and board discovery). |
 | `tools/` | Host-side Python: telemetry reader, 3D pose visualizer, IMU-driven synth. |
 | `.docs/` | MCU reference PDFs and `imu_data_processing.md` (detailed math writeup of the whole IMU pipeline). |
 | `.build/` | Build output (gitignored). |
 
 ## How the build wires together
 
-`CMakeLists.txt` → `add_stm32_board(BOARDS/NUCLEO-F401RE NUCLEO-F401RE STM32F401xE)` from
-[.cmake/stm32.cmake](.cmake/stm32.cmake), which:
+`CMakeLists.txt` discovers available boards via `stm32_list_boards(AVAILABLE_BOARDS)` and calls
+`add_stm32_board(${BOARD_NAME})` (e.g. `add_stm32_board(NUCLEO-F401RE)`) from [.cmake/stm32.cmake](.cmake/stm32.cmake), which:
 
-- creates an INTERFACE library **`${BOARD_NAME}_config`** carrying include paths, `-mcpu=cortex-m4
-  -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb`, and the defines `USE_FULL_LL_DRIVER` + `STM32F401xE`;
-- globs `Core/Src/*.c` and `Drivers/STM32F4xx_HAL_Driver/Src/*.c` into the executable target `NUCLEO-F401RE`;
-- globs `*FLASH.ld` in the board dir for the linker script.
+- loads `BOARDS/<board>/board.cmake` to read the board manifest (`MCU_FAMILY`, `DEVICE`, `CPU_PROFILE`, `DRIVER_MODE`, `DEBUG_DEVICE`);
+- resolves CPU flags via `cortex_flags(${CPU_PROFILE})` from [.cmake/cortex_profiles.cmake](.cmake/cortex_profiles.cmake);
+- creates an INTERFACE library **`${BOARD_NAME}_config`** carrying include paths, CPU compiler and linker flags, and the defines (e.g. `USE_FULL_LL_DRIVER` + `STM32F401xE`);
+- globs `Core/Src/*.c`, `Drivers/<FAMILY_DIR>_HAL_Driver/Src/*.c`, and `Core/Startup/*.s` with `CONFIGURE_DEPENDS` into the executable target `${BOARD_NAME}`;
+- finds the linker script (`*FLASH.ld` or manifest override) and sets per-board link options including `-Wl,-Map=$<TARGET_FILE_DIR:${BOARD}>/${BOARD}.map`.
 
-`APPS/CMakeLists.txt` globs `src/*.c` into `apps` and links it into the board executable.
-
-**Both source lists are globbed** — a new `.c` in `APPS/src/` needs no CMake edit, but you must
-re-run `cmake --preset ...` (configure) for the glob to pick it up; a bare `--build` will not.
+`APPS/CMakeLists.txt` globs `src/*.c` with `CONFIGURE_DEPENDS` into `apps` and links it into the board executable.
 
 Any new library target must link `${BOARD_NAME}_config` to inherit the MCU flags and include paths.
 
@@ -170,6 +169,14 @@ device — `tty.` blocks on carrier detect), `/dev/ttyACM*` on Linux.
    Note: the only examples of that helper convention lived in the deleted MPU6050 driver, so the
    remaining apps do not currently demonstrate it.
 
+## Adding a board
+
+1. Generate the board in STM32CubeIDE with **LL drivers**. Copy the export to `BOARDS/<board>/`. (Never the CubeMX CMake generator — see [Conventions](#conventions).)
+2. Write `BOARDS/<board>/board.cmake` and `BOARDS/<board>/pin_definitions.h`.
+3. Add the hidden preset, two concrete presets, and two build presets to `CMakePresets.json`.
+4. Add a `.vscode/launch.json` configuration with that board's `device`.
+5. Build with `cmake --preset <board>-Debug && cmake --build .build/<board>-Debug`.
+
 ## Gotchas
 
 - **`STM32F401RETX_FLASH.ld` must stay tracked.** `.cmake/stm32.cmake` globs `*FLASH.ld` and hard-fails
@@ -184,5 +191,4 @@ device — `tty.` blocks on carrier detect), `/dev/ttyACM*` on Linux.
   absent, on a fresh clone) will not delete the now-orphaned `Core/Src/<periph>.c`. Since
   `.cmake/stm32.cmake` globs `Core/Src/*.c`, an orphan keeps compiling into the firmware silently.
   After any peripheral removal, check `git status` for generated files that should have disappeared.
-- Adding files to `APPS/src/` requires a reconfigure (glob), see above.
 - `.cmake/` and `.docs/` are dot-prefixed on purpose — some tooling and shell globs skip them.
