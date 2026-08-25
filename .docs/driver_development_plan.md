@@ -11,7 +11,7 @@ implementation** — complete headers, empty function bodies. The ESC track has 
 
 This document is the *why and the ordering*. The *how* — task-by-task instructions with acceptance
 criteria — lives in [homework/](homework/); milestones `I0`–`I4` are covered by
-[Assignment 01](homework/homework_01_i2c_mpu6050.md).
+[Assignment 01](homework/homework_01.html).
 
 ---
 
@@ -66,21 +66,23 @@ Write the answers down before implementing either driver.
       specification* (electrical characteristics, packaging, performance). Register
       descriptions live in a **separate** InvenSense register-map document. Most of the real
       work is in the document you don't currently have — get it first.
-- [ ] **I1 — Refactor the bus plumbing, don't rewrite it.** The deleted driver's register
-      read/write helpers and I2C bus-recovery logic are recoverable from git history
-      (`git show 11c4068^:APPS/src/mpu6050_telemetry.c`) and are reusable, sensor-agnostic I2C
-      groundwork. First milestone: a clean driver skeleton with I2C read/write primitives and
-      **no sensor-specific behaviour yet**. Exercises the Phase 0 contract on known-solid
-      ground before register-map unknowns enter the picture.
+- [ ] **I1 — Write the bus plumbing from the reference manual.** First milestone: I2C read/write
+      primitives with **no sensor-specific behaviour yet**. Exercises the Phase 0 contract on
+      neutral ground before register-map unknowns enter the picture.
+
+      Derive the flag sequences from the *Master transmitter* and *Master receiver* flowcharts
+      in RM0368 rather than from an existing implementation. Working I2C code for this board
+      does exist in git history, but reading it skips the part of the exercise that has the
+      most transferable value — reading a peripheral chapter and turning it into correct code.
+      **Do not hand it to the learner.**
 
       *Skeleton done* — `DRIVERS/inc/` and `DRIVERS/src/`, compiling and linking, all bodies
-      still stubs. Two defects in the recovered code to fix while porting, or "refactor don't
-      rewrite" just inherits them:
-  - [ ] `MPU6050_ReadRegs` handles `size == 1`, loops `while (size > 3)`, then unconditionally
-        reads three bytes — so `size == 2` (or `0`) writes past the caller's buffer. It never
-        fired because the only call site passed 14; a general-purpose bus gets called with 2
-        constantly. The F4 two-byte read also needs the POS bit set before ADDR is cleared.
-  - [ ] Every wait in it is an unbounded `while (!flag);`. Each one needs a deadline.
+      still stubs. Two requirements that are easy to miss and expensive to discover later:
+  - [ ] The read path needs `len == 1`, `len == 2` and `len >= 3` handled **separately**. Folding
+        the short cases into the general one produces a function that writes three bytes into a
+        two-byte buffer. The two-byte read also needs the POS bit set before ADDR is cleared —
+        it is a distinct procedure, not a simplification.
+  - [ ] No unbounded `while (!flag);` anywhere. Every wait needs a deadline and an error check.
 - [ ] **I1b — Measure before optimising.** Set the bus to 400 kHz and instrument a 14-byte burst
       read with `DWT->CYCCNT` or a GPIO toggle. Predicted cost is ~1.56 ms at 100 kHz against
       ~0.39 ms at 400 kHz, out of 4 ms at 250 Hz — but predicted is not measured, and this number

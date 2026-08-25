@@ -8,7 +8,7 @@ are the answers to that plan's Phase 0, reasoned through in
 **Nothing here is implemented.** The headers are complete and are the specification; every function
 body is an empty stub returning `DRV_ERR_STATE`. The implementation work is set out task by task in
 [.docs/homework/](../.docs/homework/) — start with
-[Assignment 01](../.docs/homework/homework_01_i2c_mpu6050.md).
+[Assignment 01](../.docs/homework/homework_01.html).
 
 Source files carry no `TODO` comments or teaching notes by design: they are written as a published
 library, and the guidance lives in the assignments instead.

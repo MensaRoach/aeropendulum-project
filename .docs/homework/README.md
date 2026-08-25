@@ -11,7 +11,7 @@ datasheet, the assignment names the document and the chapter, not the number.
 
 | # | Assignment | Covers | Status |
 |---|---|---|---|
-| 01 | [I2C bus driver and MPU-6050 library](homework_01_i2c_mpu6050.md) | `bus_i2c.c`, `mpu6050.c` — blocking path | Ready |
+| 01 | [I2C bus driver and MPU-6050 library](homework_01.html) | `bus_i2c.c`, `mpu6050.c` — blocking path | Ready |
 | 02 | Non-blocking acquisition | Interrupt + DMA path, dropped-sample detection | Not written yet |
 | 03 | ESC driver | Timer PWM, arming, failsafe state machine | Not written yet |
 
