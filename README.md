@@ -103,7 +103,7 @@ To ensure cross-platform compatibility without overwriting each other's paths, t
             "name": "local-toolchain",
             "hidden": true,
             "environment": {
-                "PATH": "/opt/ST/STM32CubeCLT_1.21.0/GNU-tools-for-STM32/bin:/opt/ST/STM32CubeCLT_1.21.0/Ninja/bin:/opt/ST/STM32CubeCLT_1.21.0/CMake/bin:$penv{PATH}"
+                "PATH": "/opt/ST/STM32CubeCLT_1.22.0/GNU-tools-for-STM32/bin:/opt/ST/STM32CubeCLT_1.22.0/Ninja/bin:/opt/ST/STM32CubeCLT_1.22.0/CMake/bin:$penv{PATH}"
             }
         },
         {
