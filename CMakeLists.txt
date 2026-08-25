@@ -5,15 +5,12 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/.cmake/gcc-arm-none-eabi.cm
 
 project(Aeropendulum C ASM)
 
-# Include our custom STM32 build script
+include(.cmake/cortex_profiles.cmake)
 include(.cmake/stm32.cmake)
 
-# Define which board to build
-set(BOARD_NAME "NUCLEO-F401RE" CACHE STRING "Selected Board")
+stm32_list_boards(AVAILABLE_BOARDS)
+set(BOARD_NAME "NUCLEO-F401RE" CACHE STRING "Selected board")
+set_property(CACHE BOARD_NAME PROPERTY STRINGS ${AVAILABLE_BOARDS})
 
-# Build the STM32 board
-# We specify the MCU symbol (STM32F401xE) based on the board
-add_stm32_board(BOARDS/${BOARD_NAME} ${BOARD_NAME} STM32F401xE)
-
-# Add the APPS directory
+add_stm32_board(${BOARD_NAME})
 add_subdirectory(APPS)
