@@ -13,4 +13,5 @@ set(BOARD_NAME "NUCLEO-F401RE" CACHE STRING "Selected board")
 set_property(CACHE BOARD_NAME PROPERTY STRINGS ${AVAILABLE_BOARDS})
 
 add_stm32_board(${BOARD_NAME})
+add_subdirectory(DRIVERS)
 add_subdirectory(APPS)
