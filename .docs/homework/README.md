@@ -1,34 +1,89 @@
 # Homework
 
-Step-by-step assignments for building this project's firmware drivers from scratch.
+Step-by-step assignments for building this project's firmware from scratch.
 
-The driver source files in `DRIVERS/` are written as a finished library: complete headers, documented
-API, empty function bodies. **The headers are the specification.** Each assignment below tells you
-which bodies to fill in, in what order, and how to know when each one is right.
+The driver sources in `DRIVERS/` are written as a finished library: complete headers, documented API,
+empty function bodies. **The headers are the specification.** Each assignment says which bodies to
+fill in, in what order, and how to know when each one is right.
 
-Nothing here contains answers you are meant to look up yourself. Where a value comes from a
-datasheet, the assignment names the document and the chapter, not the number.
+Nothing here contains answers you are meant to derive yourself. Where a value comes from a datasheet,
+the assignment names the document and the chapter, not the number.
 
-| # | Assignment | Covers | Status |
-|---|---|---|---|
-| 01 | [I2C bus driver and MPU-6050 library](homework_01.html) | `bus_i2c.c`, `mpu6050.c` — blocking path | Ready |
-| 02 | Non-blocking acquisition | Interrupt + DMA path, dropped-sample detection | Not written yet |
-| 03 | ESC driver | Timer PWM, arming, failsafe state machine | Not written yet |
+---
+
+## The road
+
+Each assignment ends with something that visibly works, and unlocks the next one.
+
+| # | Assignment | You end up able to | Hardware needed | Status |
+|---|---|---|---|---|
+| **01** | [I2C bus driver & MPU-6050 library](homework_01.html) | Print to your laptop, and read live gravity and rotation from the sensor | Board + sensor | **Ready** |
+| **02** | Non-blocking acquisition | Read the sensor without the CPU waiting around for it | Board + sensor | Planned |
+| **03** | Timers & PWM generation | Produce a precisely-timed pulse train, and prove it is precise | **Board only** | Planned |
+| **04** | ESC driver & safety | Arm a motor, command it, and make it fail safely | Board + ESC + motor + rig | Planned |
+| **05** | Closing the loop | Hold the pendulum at an angle you choose | Everything | Planned |
+
+```
+01 ──► 02 ──┐
+            ├──► 05
+03 ──► 04 ──┘
+```
+
+01→02 and 03→04 are two independent tracks. They only need each other at 05, so if one gets blocked —
+waiting on a part, waiting on a bench — the other still moves.
+
+---
+
+## Why timers and the ESC are two assignments, not one
+
+It is tempting to treat "make the motor spin" as a single job. It is two, and they are different
+kinds of problem:
+
+**03 is a measurement problem.** Generate a pulse of a commanded width, then prove the pulse is
+actually that wide. Everything hard about it lives inside the MCU: the clock path from the system
+clock to the timer counter, how prescaler and auto-reload and compare together define a waveform, why
+shadow registers exist and what tears if you write a compare value at the wrong moment. You verify it
+with a scope, or with a second timer capturing the first.
+
+**04 is a safety problem.** The signalling protocol, what the ESC expects at power-up, and — mostly —
+a state machine: what state does it boot into, what does arming require, what happens on an MCU reset
+while the ESC stays powered, what happens if the loop feeding it stalls, how fast may throttle change,
+and what forces a disarm. Nearly all of that is reasoning about failure, not about registers.
+
+Three reasons the split is worth it:
+
+1. **03 needs no motor, no ESC, no battery, no stand.** Just the board you already have. You can
+   finish it on a desk, at any hour, with nothing that can hurt you.
+2. **A timing bug and a protocol bug look identical from the outside** — the motor beeps at you and
+   does not spin. If 03 is finished and measured, you enter 04 already knowing your pulse widths are
+   correct, so every remaining suspect is protocol or state.
+3. **04 has a safety gate in front of it** — clamped stand, prop guard, kill switch in the battery
+   line. Bundling it with 03 would mean that gate blocks the timer work too, for no reason.
+
+---
 
 ## How these fit the rest of the docs
 
-- [driver_development_plan.md](../driver_development_plan.md) — the *why*: what to figure out and in
-  what order. Assignments map onto its milestone IDs (`I0`–`I4`).
-- [driver_development_log.md](../driver_development_log.md) — the decision record. Add an entry
-  whenever an assignment asks you to choose something.
+- [driver_development_plan.md](../driver_development_plan.md) — the *why* and the ordering.
+  Assignments map onto its milestone IDs: 01 covers `I0`–`I2` and `I4`, 02 covers `I1b` and `I3`,
+  03 covers `E0`–`E1`, 04 covers `E2`–`E4`.
+- [driver_development_log.md](../driver_development_log.md) — the decision record. Every assignment
+  asks you to add entries; that is what makes a later review feedback on the *thinking*.
 - [DRIVERS/README.md](../../DRIVERS/README.md) — the layering rule the code follows.
+
+---
 
 ## Ground rules
 
-1. **The headers do not change.** If you think a signature is wrong, say so and discuss it — do not
-   quietly edit it. The API was designed before the implementation on purpose.
-2. **Never return `DRV_OK` from something that did not happen.** A function that reports success it
-   did not achieve is worse than one that fails, because the caller carries on regardless.
-3. **No unbounded waits.** Every `while` that polls a hardware flag needs a way out.
-4. **Commit per task.** One commit per numbered task makes it possible to review the reasoning, not
-   just the final diff.
+1. **The headers do not change.** If a signature looks wrong, say so and discuss it — do not quietly
+   edit it. The API was designed before the implementation on purpose, and finding a genuine flaw in
+   it is a better outcome than working around one.
+2. **Never return `DRV_OK` from something that did not happen.** A function reporting success it did
+   not achieve is worse than one that fails, because the caller carries on regardless.
+3. **No unbounded waits.** Every `while` polling a hardware flag needs a way out.
+4. **Commit per task.** One commit per numbered task makes the reasoning reviewable, not just the
+   final diff.
+5. **Build it yourself.** There is older firmware in this repo's git history that solves some of these
+   problems. Reading it skips the part with the most transferable value — turning a reference manual
+   into working code — so it is off-limits, and the assignments are written assuming you have not seen
+   it.
