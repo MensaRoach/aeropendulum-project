@@ -7,10 +7,13 @@
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/.build/${presetName}",
             "toolchainFile": "${sourceDir}/.cmake/gcc-arm-none-eabi.cmake",
-            "cacheVariables": {}
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+            }
         },
         {
             "name": "Debug",
+            "hidden": true,
             "inherits": "default",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
@@ -18,20 +21,44 @@
         },
         {
             "name": "Release",
+            "hidden": true,
             "inherits": "default",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
+        },
+        {
+            "name": "board-NUCLEO-F401RE",
+            "hidden": true,
+            "cacheVariables": {
+                "BOARD_NAME": "NUCLEO-F401RE"
+            }
+        },
+        {
+            "name": "NUCLEO-F401RE-Debug",
+            "displayName": "NUCLEO-F401RE (Debug)",
+            "inherits": [
+                "Debug",
+                "board-NUCLEO-F401RE"
+            ]
+        },
+        {
+            "name": "NUCLEO-F401RE-Release",
+            "displayName": "NUCLEO-F401RE (Release)",
+            "inherits": [
+                "Release",
+                "board-NUCLEO-F401RE"
+            ]
         }
     ],
     "buildPresets": [
         {
-            "name": "Debug",
-            "configurePreset": "Debug"
+            "name": "NUCLEO-F401RE-Debug",
+            "configurePreset": "NUCLEO-F401RE-Debug"
         },
         {
-            "name": "Release",
-            "configurePreset": "Release"
+            "name": "NUCLEO-F401RE-Release",
+            "configurePreset": "NUCLEO-F401RE-Release"
         }
     ]
 }

@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug / Flash (Cortex-Debug)",
+            "name": "Debug / Flash NUCLEO-F401RE (Cortex-Debug)",
             "cwd": "${workspaceFolder}",
             "executable": "${command:cmake.launchTargetPath}",
             "request": "launch",
