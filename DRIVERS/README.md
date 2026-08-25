@@ -5,8 +5,13 @@ Scaffolding for the from-scratch driver rewrite described in
 are the answers to that plan's Phase 0, reasoned through in
 [.docs/driver_development_log.md](../.docs/driver_development_log.md).
 
-**Nothing here is implemented.** Every function returns `DRV_ERR_STATE` and carries a
-`TODO(<milestone>)` pointing at the plan item that fills it in.
+**Nothing here is implemented.** The headers are complete and are the specification; every function
+body is an empty stub returning `DRV_ERR_STATE`. The implementation work is set out task by task in
+[.docs/homework/](../.docs/homework/) — start with
+[Assignment 01](../.docs/homework/homework_01_i2c_mpu6050.md).
+
+Source files carry no `TODO` comments or teaching notes by design: they are written as a published
+library, and the guidance lives in the assignments instead.
 
 ## Layering
 

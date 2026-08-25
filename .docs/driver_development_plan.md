@@ -6,8 +6,12 @@ order, not what the answers are. See the note at the bottom on spoiler sources.
 
 **Status:** in progress on the IMU track. Phase 0 is answered (see
 [driver_development_log.md](driver_development_log.md)) and `DRIVERS/` holds a **scaffold with no
-implementation** — interfaces, contracts and `TODO(<milestone>)` tags referencing the milestone IDs
-below. The ESC track has not started. See [CLAUDE.md](../CLAUDE.md) for current firmware state.
+implementation** — complete headers, empty function bodies. The ESC track has not started. See
+[CLAUDE.md](../CLAUDE.md) for current firmware state.
+
+This document is the *why and the ordering*. The *how* — task-by-task instructions with acceptance
+criteria — lives in [homework/](homework/); milestones `I0`–`I4` are covered by
+[Assignment 01](homework/homework_01_i2c_mpu6050.md).
 
 ---
 

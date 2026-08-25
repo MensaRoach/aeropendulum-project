@@ -11,10 +11,13 @@ currently emits any; see below.
 
 Current state: the MPU6050 firmware driver was **deliberately deleted** and is being rewritten from
 scratch as a learning exercise, alongside an ESC driver that does not exist yet. `DRIVERS/` now holds
-a **scaffold for that rewrite — interfaces and contracts only, no implementation**: every function
-returns `DRV_ERR_STATE` and carries a `TODO(<milestone>)` pointing at
-[.docs/driver_development_plan.md](.docs/driver_development_plan.md). It compiles and links; it does
-nothing. See [DRIVERS/README.md](DRIVERS/README.md) for the layering rule.
+a **scaffold for that rewrite — interfaces and contracts only, no implementation**: the headers are
+complete and documented, and every function body is an empty stub returning `DRV_ERR_STATE`. It
+compiles and links; it does nothing. The implementation work is set out as guided assignments in
+[.docs/homework/](.docs/homework/). See [DRIVERS/README.md](DRIVERS/README.md) for the layering rule.
+
+**Keep `DRIVERS/` free of `TODO` comments and teaching notes.** The source is written as a published
+library; the tasks, hints and rationale live in `.docs/homework/` instead.
 
 What actually runs on the board is USART output, COBS framing, and two trivial demo apps. The
 host-side Python tools in `tools/` were kept and still expect the old frame format — see
@@ -68,7 +71,8 @@ app exists again — the telemetry stream decodes on the host.
 |---|---|---|
 | [.docs/feasibility_analysis.md](.docs/feasibility_analysis.md) | **Authoritative** on hardware, sizing, powertrain and safety | Dated, with a firmware baseline. Its headline finding is a battery-voltage decision. **Spoiler source** — see below. |
 | [.docs/hardware_feasibility.md](.docs/hardware_feasibility.md) | **Superseded** | An earlier, coarser pass. Kept for history; carries a supersession banner. Do not cite it. |
-| [.docs/driver_development_plan.md](.docs/driver_development_plan.md) | Active | The process document for the ESC + IMU rewrite. Milestone IDs (`I0`–`I4`, `E0`–`E4`) are referenced from `TODO()` tags in `DRIVERS/`. |
+| [.docs/driver_development_plan.md](.docs/driver_development_plan.md) | Active | The process document for the ESC + IMU rewrite — the *why* and the ordering. Milestone IDs `I0`–`I4`, `E0`–`E4`. |
+| [.docs/homework/](.docs/homework/) | Active | Step-by-step implementation assignments — the *how*. Assignment 01 covers the I2C bus driver and the MPU-6050 library. |
 | [.docs/driver_development_log.md](.docs/driver_development_log.md) | Active | Decisions log. One entry per non-obvious choice, with reasoning. |
 | [.docs/imu_data_processing.md](.docs/imu_data_processing.md) | Reference, **describes deleted firmware** | The math is still correct and the host tools still implement it. The firmware it describes no longer exists. **Spoiler source.** |
 | [.docs/cmake_multi_board_plan.md](.docs/cmake_multi_board_plan.md) | **Implemented** | Historical implementation brief. Kept for the reasoning in §4 (rejected alternatives) and §7. |
