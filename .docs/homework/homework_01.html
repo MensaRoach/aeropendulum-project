@@ -1,10 +1,11 @@
+<meta charset="UTF-8">
 <title>Aeropendulum Assignment 01</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;family=IBM+Plex+Sans+Condensed:wght@600;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
 
 <style>
-/* â”€â”€ Tokens â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Tokens ─────────────────────────────────────────────────────────────── */
 :root {
     --red: #E21E27;
     --red-ink: #B31119;
@@ -85,7 +86,7 @@ p { margin: 0; }
 a { color: var(--red-ink); text-underline-offset: .18em; }
 :focus-visible { outline: 2px solid var(--red); outline-offset: 3px; border-radius: 2px; }
 
-/* â”€â”€ Masthead â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Masthead ───────────────────────────────────────────────────────────── */
 .masthead {
     border-bottom: 2px solid var(--rule);
     background: var(--surface);
@@ -140,7 +141,7 @@ a { color: var(--red-ink); text-underline-offset: .18em; }
 }
 .fact dd { margin: 0; font-weight: 500; font-size: .93rem; }
 
-/* â”€â”€ Progress strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Progress strip ─────────────────────────────────────────────────────── */
 .progress-strip {
     position: sticky; top: 0; z-index: 40;
     background: var(--surface); border-bottom: 1px solid var(--line);
@@ -167,7 +168,7 @@ a { color: var(--red-ink); text-underline-offset: .18em; }
 .btn:hover { border-color: var(--red); color: var(--red-ink); }
 .btn[aria-pressed="true"] { background: var(--red); border-color: var(--red); color: #fff; }
 
-/* â”€â”€ Shell â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Shell ──────────────────────────────────────────────────────────────── */
 .shell {
     max-width: 78rem; margin: 0 auto; padding: 2.5rem 1.5rem 6rem;
     display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); gap: 3rem;
@@ -197,7 +198,7 @@ a { color: var(--red-ink); text-underline-offset: .18em; }
     margin-left: auto; font-variant-numeric: tabular-nums; flex: none;
 }
 
-/* â”€â”€ Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Content ────────────────────────────────────────────────────────────── */
 .doc { min-width: 0; display: flex; flex-direction: column; gap: 3.5rem; }
 .doc > section { scroll-margin-top: 4.5rem; }
 .sec__head { margin-bottom: 1.5rem; }
@@ -214,7 +215,7 @@ a { color: var(--red-ink); text-underline-offset: .18em; }
 .prose li::marker { color: var(--muted); }
 .prose strong { font-weight: 600; }
 
-/* â”€â”€ Task cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Task cards ─────────────────────────────────────────────────────────── */
 .tasks { display: flex; flex-direction: column; gap: 1.25rem; }
 .task {
     background: var(--surface); border: 1px solid var(--line);
@@ -416,7 +417,7 @@ footer.foot {
 
     <main class="doc">
 
-        <!-- â”€â”€ SETUP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── SETUP ────────────────────────────────────────────────────── -->
         <section id="setup">
             <div class="sec__head">
                 <span class="sec__eyebrow">Stage S</span>
@@ -615,7 +616,7 @@ cmake --build .build/NUCLEO-F401RE-Debug-Local</code></pre>
             </div>
         </section>
 
-        <!-- â”€â”€ PART A â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── PART A ───────────────────────────────────────────────────── -->
         <section id="part-a">
             <div class="sec__head">
                 <span class="sec__eyebrow">Part A &middot; 3 tasks</span>
@@ -786,7 +787,7 @@ cmake --build .build/NUCLEO-F401RE-Debug-Local</code></pre>
             </div>
         </section>
 
-        <!-- â”€â”€ PART B â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── PART B ───────────────────────────────────────────────────── -->
         <section id="part-b">
             <div class="sec__head">
                 <span class="sec__eyebrow">Part B &middot; 6 tasks</span>
@@ -918,7 +919,7 @@ cmake --build .build/NUCLEO-F401RE-Debug-Local</code></pre>
                     </div>
                     <div class="task__body">
                         <p>Implement <code>i2c_bus_write()</code>. The transaction you are producing:</p>
-                        <pre><code>START â†’ address+W â†’ register address â†’ data[0] â€¦ data[len-1] â†’ STOP</code></pre>
+                        <pre><code>START → address+W → register address → data[0] … data[len-1] → STOP</code></pre>
                         <p>
                             The flags involved are <code>SB</code>, <code>ADDR</code>,
                             <code>TXE</code> and <code>BTF</code>. The master-transmitter flowchart in
@@ -981,8 +982,8 @@ cmake --build .build/NUCLEO-F401RE-Debug-Local</code></pre>
                         </p>
                         <p>A register read is a <strong>combined transfer</strong>: the direction
                            reverses mid-transaction without ever releasing the bus.</p>
-                        <pre><code>START â†’ address+W â†’ register address
-      â†’ REPEATED START â†’ address+R â†’ data in â†’ STOP</code></pre>
+                        <pre><code>START → address+W → register address
+      → REPEATED START → address+R → data in → STOP</code></pre>
                         <p>
                             The tail of a read is genuinely awkward on this peripheral. It has a
                             two-stage pipeline &mdash; a data register behind a shift register &mdash;
@@ -1142,7 +1143,7 @@ cmake --build .build/NUCLEO-F401RE-Debug-Local</code></pre>
             </div>
         </section>
 
-        <!-- â”€â”€ PART C â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── PART C ───────────────────────────────────────────────────── -->
         <section id="part-c">
             <div class="sec__head">
                 <span class="sec__eyebrow">Part C &middot; 7 tasks</span>
@@ -1393,7 +1394,7 @@ cmake --build .build/NUCLEO-F401RE-Debug-Local</code></pre>
                             <h4>Done when</h4>
                             <p>
                                 Flat and still, the magnitude of the acceleration vector
-                                <code>sqrt(xÂ² + yÂ² + zÂ²)</code> reads within a few percent of
+                                <code>sqrt(x² + y² + z²)</code> reads within a few percent of
                                 1.0&nbsp;g.
                             </p>
                         </div>
@@ -1455,7 +1456,7 @@ cmake --build .build/NUCLEO-F401RE-Debug-Local</code></pre>
             </div>
         </section>
 
-        <!-- â”€â”€ PART D â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── PART D ───────────────────────────────────────────────────── -->
         <section id="part-d">
             <div class="sec__head">
                 <span class="sec__eyebrow">Part D &middot; 4 tasks</span>
@@ -1553,10 +1554,10 @@ static mpu6050_t  s_imu;</code></pre>
                         <p>In order. Each rung catches bugs the one before it cannot.</p>
                         <ul class="checklist">
                             <li><label class="tick"><input type="checkbox" data-sub="D2a"><span>Identity register returns the expected device ID</span></label></li>
-                            <li><label class="tick"><input type="checkbox" data-sub="D2b"><span>At rest, acceleration magnitude â‰ˆ 1 g in <strong>any</strong> static orientation &mdash; not just flat. A single orientation cannot distinguish a scaling error from an axis-assignment error</span></label></li>
-                            <li><label class="tick"><input type="checkbox" data-sub="D2c"><span>Six-face test: each axis reads +1 g pointing up and âˆ’1 g pointing down</span></label></li>
-                            <li><label class="tick"><input type="checkbox" data-sub="D2d"><span>Gyro reads â‰ˆ 0 at rest after calibration</span></label></li>
-                            <li><label class="tick"><input type="checkbox" data-sub="D2e"><span>Rotate a deliberate 90Â° and integrate the gyro rate over the motion &mdash; the result lands near 90Â°</span></label></li>
+                            <li><label class="tick"><input type="checkbox" data-sub="D2b"><span>At rest, acceleration magnitude ≈ 1 g in <strong>any</strong> static orientation &mdash; not just flat. A single orientation cannot distinguish a scaling error from an axis-assignment error</span></label></li>
+                            <li><label class="tick"><input type="checkbox" data-sub="D2c"><span>Six-face test: each axis reads +1 g pointing up and −1 g pointing down</span></label></li>
+                            <li><label class="tick"><input type="checkbox" data-sub="D2d"><span>Gyro reads ≈ 0 at rest after calibration</span></label></li>
+                            <li><label class="tick"><input type="checkbox" data-sub="D2e"><span>Rotate a deliberate 90° and integrate the gyro rate over the motion &mdash; the result lands near 90°</span></label></li>
                             <li><label class="tick"><input type="checkbox" data-sub="D2f"><span>Sign convention confirmed and written down: a positive reading on each axis means what you expect</span></label></li>
                             <li><label class="tick"><input type="checkbox" data-sub="D2g"><span>Real sample interval measured &mdash; toggle a GPIO and scope it, or timestamp on the host. Do not trust the nominal rate</span></label></li>
                         </ul>
@@ -1632,7 +1633,7 @@ static mpu6050_t  s_imu;</code></pre>
             </div>
         </section>
 
-        <!-- â”€â”€ SUBMISSION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── SUBMISSION ───────────────────────────────────────────────── -->
         <section id="submission">
             <div class="sec__head">
                 <span class="sec__eyebrow">Hand-in</span>
@@ -1652,7 +1653,7 @@ static mpu6050_t  s_imu;</code></pre>
             </ul>
         </section>
 
-        <!-- â”€â”€ APPENDIX â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+        <!-- ── APPENDIX ─────────────────────────────────────────────────── -->
         <section id="appendix">
             <div class="sec__head">
                 <span class="sec__eyebrow">Appendix</span>
@@ -1670,7 +1671,7 @@ static mpu6050_t  s_imu;</code></pre>
                         <tr><td>Probe returns <code>DRV_ERR_NACK</code></td><td>Wrong address, or the address got shifted twice. <code>dev_addr</code> is 7-bit right-aligned; shift in exactly one place</td></tr>
                         <tr><td>First read works, everything after fails</td><td>A latched error flag was never cleared &mdash; see B5</td></tr>
                         <tr><td>Data is byte-swapped garbage</td><td>Device sends MSB first; you assembled it little-endian &mdash; see C5</td></tr>
-                        <tr><td>Accel magnitude is 2Ã— or 0.5Ã— correct</td><td>Scale factor does not match the configured range &mdash; see C6</td></tr>
+                        <tr><td>Accel magnitude is 2× or 0.5× correct</td><td>Scale factor does not match the configured range &mdash; see C6</td></tr>
                         <tr><td>Values look right but drift steadily</td><td>Gyro bias not applied, or calibration ran while moving</td></tr>
                         <tr><td>Sample rate is not what you asked for</td><td>The divider's base rate depends on the DLPF setting &mdash; see C4</td></tr>
                         <tr><td>Reads of 2 bytes corrupt memory</td><td>The <code>len == 2</code> case was folded into <code>len &gt;= 3</code> &mdash; see B4</td></tr>
@@ -1705,7 +1706,7 @@ static mpu6050_t  s_imu;</code></pre>
 
     function keyOf(b) { return b.getAttribute("data-task") || b.getAttribute("data-sub"); }
 
-    /* â”€â”€ persistence â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* ── persistence ─────────────────────────────────────────────────── */
     function load() {
         try {
             var raw = localStorage.getItem(KEY);
@@ -1719,7 +1720,7 @@ static mpu6050_t  s_imu;</code></pre>
     var state = load();
     boxes.forEach(function (b) { if (state[keyOf(b)]) { b.checked = true; } });
 
-    /* â”€â”€ progress â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* ── progress ────────────────────────────────────────────────────── */
     var fill = document.getElementById("pfill");
     var count = document.getElementById("pcount");
     var meters = Array.prototype.slice.call(document.querySelectorAll("[data-meter]"));
@@ -1753,7 +1754,7 @@ static mpu6050_t  s_imu;</code></pre>
     });
     refresh();
 
-    /* â”€â”€ jump to next unfinished â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* ── jump to next unfinished ─────────────────────────────────────── */
     document.getElementById("jump").addEventListener("click", function () {
         var next = taskBoxes.filter(function (b) { return !b.checked; })[0];
         var card = next && next.closest(".task");
@@ -1766,7 +1767,7 @@ static mpu6050_t  s_imu;</code></pre>
         card.scrollIntoView({ behavior: "smooth", block: "center" });
     });
 
-    /* â”€â”€ focus mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* ── focus mode ──────────────────────────────────────────────────── */
     var focusBtn = document.getElementById("focus");
     focusBtn.addEventListener("click", function () {
         var on = document.body.classList.toggle("focus-on");
@@ -1781,7 +1782,7 @@ static mpu6050_t  s_imu;</code></pre>
         });
     });
 
-    /* â”€â”€ reset â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* ── reset ───────────────────────────────────────────────────────── */
     document.getElementById("reset").addEventListener("click", function () {
         if (!window.confirm("Clear all ticked boxes on this page?")) { return; }
         state = {};
@@ -1790,7 +1791,7 @@ static mpu6050_t  s_imu;</code></pre>
         refresh();
     });
 
-    /* â”€â”€ scrollspy â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* ── scrollspy ───────────────────────────────────────────────────── */
     var links = Array.prototype.slice.call(document.querySelectorAll(".rail a"));
     var sections = links
         .map(function (a) { return document.querySelector(a.getAttribute("href")); })
