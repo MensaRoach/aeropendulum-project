@@ -43,11 +43,6 @@ drv_status_t i2c_bus_init(i2c_bus_t *bus, i2c_speed_t speed)
 drv_status_t i2c_bus_recover(i2c_bus_t *bus)
 {
     (void)bus;
-#if defined(BOARD_NUCLEO_F401RE)
-#elif defined(BOARD_STM32F407G_DISC1)
-#else
-#error "Unsupported board — no BOARD_* macro defined. See add_stm32_board() in .cmake/stm32.cmake."
-#endif
     return DRV_ERR_STATE;
 }
 
