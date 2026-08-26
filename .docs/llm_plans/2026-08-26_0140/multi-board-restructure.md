@@ -1,7 +1,7 @@
 # Implementation Plan — Multi-Board Restructure & Two-Person Workflow
 
 **Created:** 2026-08-26 01:40 +02:00
-**Status:** Phase 0 complete (commit `c6d44e6`). Phases 1–3 not started.
+**Status:** Phase 1 complete (commit `9680e78`). Phases 2–3 not started.
 **Audience:** An LLM agent implementing this in a fresh session.
 
 > Read [CLAUDE.md](../../../CLAUDE.md) before touching anything. Its conventions
@@ -293,6 +293,46 @@ Flag these; do not attempt them.
 ### 6.5 Phase 1 verification
 
 `APP_BLINKY` builds and runs on the F407. Both boards build from a clean tree.
+
+### 6.6 Execution record — 2026-08-26 02:16–02:19 +02:00
+
+**Commit:** `9680e78` on `main`
+
+**What was created:**
+- `BOARDS/STM32F407G-DISC1/board.cmake` — `STM32F4 / STM32F407xx / cortex-m4f / LL / STM32F407VG`
+- `BOARDS/STM32F407G-DISC1/pin_definitions.h` — IMU I2C1 PB6/PB7 AF4; STATUS_LED PD12
+  (LD4 green, per the DISC1 user manual); `TELEMETRY_USART` intentionally absent with comment
+- `BOARDS/STM32F407G-DISC1/Core/Src/main.c` — `app_main()` call added in `USER CODE BEGIN 2`
+- `CMakePresets.json` — `board-STM32F407G-DISC1` hidden preset + Debug/Release pairs
+- `.vscode/launch.json` — `STM32F407VG` Cortex-Debug entry
+
+**Deviations from plan:**
+
+1. **USART LL bootstrap files.** `bus_uart.h` includes `stm32f4xx_ll_usart.h`, which the F407
+   CubeMX export does not contain (USART absent from `.ioc`). The F401's copy was copied across
+   (`BOARDS/STM32F407G-DISC1/Drivers/STM32F4xx_HAL_Driver/Inc+Src/stm32f4xx_ll_usart.*`).
+   These are identical-API placeholder files — the collaborator's `ioc` regeneration will replace
+   them with the real generated versions once USART is added.
+
+2. **`hello_usart.c` portability fix.** The app file compiled against the F407 `pin_definitions.h`
+   and failed because `TELEMETRY_USART` is not defined there. Added `#ifdef TELEMETRY_USART` guard
+   with no-op stubs in the `#else` branch. This fix also benefits any future board added before
+   its USART is wired. The F401 build is unaffected.
+
+3. **`.mxproject` already gitignored.** Confirmed `.gitignore` has `.mxproject` — not tracked.
+
+**Verification results:**
+
+| Check | Result |
+|---|---|
+| F407 clean build, no warnings | ✅ |
+| F407 RAM 1568 B / FLASH 5008 B | ✅ |
+| F401 still RAM 1568 B / FLASH 8964 B | ✅ (no regression) |
+
+**Collaborator actions still required (§6.4):**
+1. Add USART to F407 `.ioc` in CubeMX (LL, not CubeMX CMake generator), regenerate BSP
+2. Verify ST-LINK VCP routing on the DISC1 — may need USB-TTL adapter
+3. Add `STM32F407G-DISC1-Debug-Local` to their local `CMakeUserPresets.json`
 
 ---
 
