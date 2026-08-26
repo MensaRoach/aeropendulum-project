@@ -9,8 +9,22 @@ include(.cmake/cortex_profiles.cmake)
 include(.cmake/stm32.cmake)
 
 stm32_list_boards(AVAILABLE_BOARDS)
-set(BOARD_NAME "NUCLEO-F401RE" CACHE STRING "Selected board")
+
+# No default board. A bare `cmake ..` with nothing selected must fail loudly
+# rather than silently building for whichever board happened to be tracked
+# first — with two boards in the tree now, guessing is worse than asking.
+set(BOARD_NAME "" CACHE STRING "Selected board (required)")
 set_property(CACHE BOARD_NAME PROPERTY STRINGS ${AVAILABLE_BOARDS})
+
+if(NOT BOARD_NAME)
+    string(REPLACE ";" ", " AVAILABLE_BOARDS_STR "${AVAILABLE_BOARDS}")
+    message(FATAL_ERROR
+        "No board selected. Available boards: ${AVAILABLE_BOARDS_STR}.\n"
+        "Configure with a preset, e.g.:\n"
+        "    cmake --preset NUCLEO-F401RE-Debug\n"
+        "or set BOARD_NAME explicitly:\n"
+        "    cmake -B .build/mybuild -D BOARD_NAME=NUCLEO-F401RE")
+endif()
 
 add_stm32_board(${BOARD_NAME})
 add_subdirectory(LIB)
