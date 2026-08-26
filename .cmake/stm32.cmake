@@ -107,9 +107,33 @@ function(add_stm32_board BOARD)
         list(APPEND DRIVER_DEFINES USE_FULL_LL_DRIVER USE_HAL_DRIVER)
     endif()
 
+    # -----------------------------------------------------------------------
+    # Board identity macros
+    # -----------------------------------------------------------------------
+    # Derived from BOARD_NAME, so the presets stay the single source of truth:
+    # a preset sets BOARD_NAME, and the matching macro follows automatically.
+    # Adding a board needs no edit here.
+    #
+    #   NUCLEO-F401RE      -> BOARD_NUCLEO_F401RE   + BOARD_NAME_STR "NUCLEO-F401RE"
+    #   STM32F407G-DISC1   -> BOARD_STM32F407G_DISC1
+    #
+    # These live on _config, not _cpu, which means LIB/ cannot see them. That is
+    # deliberate: portable device code must never branch on which board it is
+    # running on. DRIVERS/ and APPS/ can see them.
+    #
+    # Intended use is conditional *availability* — a peripheral or generated
+    # middleware that exists on one board and not the other (see usb.c). Using
+    # them to paper over register-level differences inside DRIVERS/stm32f4/
+    # would defeat the per-family sharing this layer exists for; prefer
+    # pin_definitions.h and runtime configuration for that.
+    string(TOUPPER "${BOARD}" _board_macro)
+    string(REGEX REPLACE "[^A-Z0-9]" "_" _board_macro "${_board_macro}")
+
     target_compile_definitions(${BOARD}_config INTERFACE
         ${DRIVER_DEFINES}
         ${STM32_BOARD_DEVICE}
+        BOARD_${_board_macro}
+        BOARD_NAME_STR="${BOARD}"
         ${STM32_BOARD_EXTRA_DEFINES}
     )
 
