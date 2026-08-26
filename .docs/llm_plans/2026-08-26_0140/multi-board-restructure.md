@@ -1,7 +1,7 @@
 # Implementation Plan — Multi-Board Restructure & Two-Person Workflow
 
 **Created:** 2026-08-26 01:40 +02:00
-**Status:** Approved, not started. No code has been written for any phase below.
+**Status:** Phase 0 complete (commit `c6d44e6`). Phases 1–3 not started.
 **Audience:** An LLM agent implementing this in a fresh session.
 
 > Read [CLAUDE.md](../../../CLAUDE.md) before touching anything. Its conventions
@@ -207,6 +207,36 @@ move happened — find it before continuing.
 
 Also prove the layering is enforced: temporarily add `#include "stm32f4xx_ll_i2c.h"` to
 `LIB/mpu6050/src/mpu6050.c` and confirm the build **fails**. Remove it afterwards.
+
+### 5.5 Execution record — 2026-08-26 02:09–02:12 +02:00
+
+**Commit:** `c6d44e6` on `main`
+
+All 8 `git mv` operations executed and tracked as `R100` renames. Six new CMake files
+written. Four existing CMake files modified. `BOARDS/STM32F407G-DISC1/` (previously
+untracked) also staged and committed in the same commit.
+
+**Deviations from plan:**
+- `git mv` requires destination directories to exist first on Windows; they were
+  pre-created with `New-Item` before running the renames. No effect on git history.
+- During the layering enforcement test, `mpu6050.c` was temporarily overwritten by the
+  PowerShell restore step, breaking the rename tracking. Recovered by unstaging,
+  re-checking out from HEAD, and re-running `git mv` after removing the stale destination.
+  Final status `R100` confirmed before commit.
+- `&&` is not a valid statement separator in PowerShell; all multi-step commands used `;`.
+
+**Verification results:**
+
+| Check | Result |
+|---|---|
+| Clean build, no warnings | ✅ |
+| RAM 1568 B | ✅ (exact match) |
+| FLASH 8964 B | ✅ (exact match) |
+| `#include stm32f4xx_ll_i2c.h` in `LIB/mpu6050/src/mpu6050.c` → build error | ✅ `fatal error: stm32f4xx_ll_i2c.h: No such file or directory` |
+| Restore → clean build | ✅ |
+
+Stub discipline intact — no implementations added, all function bodies still return
+`DRV_ERR_STATE`.
 
 ---
 
