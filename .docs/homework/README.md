@@ -17,7 +17,7 @@ Each assignment ends with something that visibly works, and unlocks the next one
 
 | # | Assignment | You end up able to | Hardware needed | Status |
 |---|---|---|---|---|
-| **01** | [I2C bus driver & MPU-6050 library](homework_01.html) | Print to your laptop, and read live gravity and rotation from the sensor | Board + sensor | **Ready** |
+| **01** | [I2C bus driver & MPU-6050 library](homework_01.html) | Print to your laptop, read live gravity, and cross-flash with a partner | Board + sensor + partner's board | **Ready** |
 | **02** | Non-blocking acquisition | Read the sensor without the CPU waiting around for it | Board + sensor | Planned |
 | **03** | Timers & PWM generation | Produce a precisely-timed pulse train, and prove it is precise | **Board only** | Planned |
 | **04** | ESC driver & safety | Arm a motor, command it, and make it fail safely | Board + ESC + motor + rig | Planned |
@@ -65,7 +65,7 @@ Three reasons the split is worth it:
 ## How these fit the rest of the docs
 
 - [driver_development_plan.md](../driver_development_plan.md) — the *why* and the ordering.
-  Assignments map onto its milestone IDs: 01 covers `I0`–`I2` and `I4`, 02 covers `I1b` and `I3`,
+  Assignments map onto its milestone IDs: 01 covers `I0`–`I2`, `I4`, and the cross-flash integration test, 02 covers `I1b` and `I3`,
   03 covers `E0`–`E1`, 04 covers `E2`–`E4`.
 - [driver_development_log.md](../driver_development_log.md) — the decision record. Every assignment
   asks you to add entries; that is what makes a later review feedback on the *thinking*.
@@ -87,3 +87,14 @@ Three reasons the split is worth it:
    problems. Reading it skips the part with the most transferable value — turning a reference manual
    into working code — so it is off-limits, and the assignments are written assuming you have not seen
    it.
+
+---
+
+## Workflow
+
+To make the collaboration model work without chaotic merge conflicts, follow this cadence:
+
+1. **Branch naming**: Use descriptive, scoped branch names (e.g., `feat/hw01-i2c`, `fix/uart-timeout`).
+2. **Commit per task**: Make a commit for every numbered task (e.g., A1, A2) in the assignment. Your commit message should explain what was done and *why*.
+3. **Merge cadence**: Merge with your partner when a milestone or assignment is complete. Do not merge in the middle of an assignment unless explicitly instructed.
+4. **Synthesis sessions**: Do not blindly resolve git conflicts. Sit together, run `git diff a..b -- path` or `git checkout --conflict=diff3`, and treat the merge as a discussion to synthesize the best implementation choices from both sides. You can use `git merge --no-commit` to pause and inspect the merge before finalizing it.

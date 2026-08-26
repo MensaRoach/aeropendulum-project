@@ -1,12 +1,29 @@
 # Implementation Plan — Multi-Board Restructure & Two-Person Workflow
 
 **Created:** 2026-08-26 01:40 +02:00
-**Status:** Phase 2 complete. Phase 3 not started.
+**Status:** Phase 3 complete. All restructuring phases finished.
 **Audience:** An LLM agent implementing this in a fresh session.
 
 > Read [CLAUDE.md](../../../CLAUDE.md) before touching anything. Its conventions
 > (LL drivers only, never the CubeMX CMake generator, no application code in generated files,
 > spoiler discipline) all still apply and are not repeated here.
+
+
+### 8.5 Execution record — 2026-08-26 02:47–03:02 +02:00
+
+**Files Updated:**
+- `.docs/homework/homework_01.html`:
+  - Applied path updates for `DRIVERS/stm32f4` and `LIB/mpu6050`.
+  - Added board-specific notes for F401 vs F407 (84/168 MHz clocks, LD2/LD4 LEDs, and the F407 USART/VCP caveats).
+  - Added "Part E — Integrate" with cross-flashing tasks (E1, E2, E3).
+  - Updated the task counts from 24 to 27 everywhere (`pcount`, `data-task` inputs).
+  - **Critical fix:** Renamed `data-sub="E1"` to `E10` (the submission checklist) to `Sub1`-`Sub10` to avoid a collision in the Javascript `localStorage` state tracking caused by adding Part E tasks (`data-task="E1"`).
+  - Added Part E to the sticky navigation sidebar and to the Sittings table (Sitting 6).
+- `.docs/homework/README.md`:
+  - Updated roadmap mapping to state Assignment 01 now covers the cross-flash test.
+  - Added a "Workflow" section detailing branch naming, commit-per-task, merge cadence (merge per task to avoid giant conflicts), synthesis protocols, and useful Git commands.
+
+---
 
 ---
 
@@ -406,6 +423,23 @@ Content:
 - The synthesis-session protocol
 - Useful commands: `git checkout --conflict=diff3`, `git diff <a>..<b> -- <path>`,
   `git merge --no-commit`
+
+---
+
+
+### 8.5 Execution record — 2026-08-26 02:47–03:02 +02:00
+
+**Files Updated:**
+- `.docs/homework/homework_01.html`:
+  - Applied path updates for `DRIVERS/stm32f4` and `LIB/mpu6050`.
+  - Added board-specific notes for F401 vs F407 (84/168 MHz clocks, LD2/LD4 LEDs, and the F407 USART/VCP caveats).
+  - Added "Part E — Integrate" with cross-flashing tasks (E1, E2, E3).
+  - Updated the task counts from 24 to 27 everywhere (`pcount`, `data-task` inputs).
+  - **Critical fix:** Renamed `data-sub="E1"` to `E10` (the submission checklist) to `Sub1`-`Sub10` to avoid a collision in the Javascript `localStorage` state tracking caused by adding Part E tasks (`data-task="E1"`).
+  - Added Part E to the sticky navigation sidebar and to the Sittings table (Sitting 6).
+- `.docs/homework/README.md`:
+  - Updated roadmap mapping to state Assignment 01 now covers the cross-flash test.
+  - Added a "Workflow" section detailing branch naming, commit-per-task, merge cadence (merge per task to avoid giant conflicts), synthesis protocols, and useful Git commands.
 
 ---
 
