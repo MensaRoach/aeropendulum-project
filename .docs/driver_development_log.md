@@ -49,6 +49,19 @@ function (`mpu6050_convert`) separate from acquisition, rather than folded into 
 stay available, which keeps the existing telemetry wire format and the host tools working, and makes
 the scaling testable off-target.
 
+## 2026-08-26 — Multi-Board Restructure Decisions
+
+Three key architectural and workflow decisions were made to support collaboration across different boards (NUCLEO-F401RE and STM32F407G-DISC1):
+
+**Platform layer organisation — per-family, not per-board.**
+Both the F401 and F407 share the STM32F4 family and use the identical I2C v1 peripheral with identical register-level sequences. The differences (pins, clock speed) are handled via `pin_definitions.h` and runtime configuration (e.g. `LL_I2C_ConfigSpeed` reading PCLK1). A single shared `DRIVERS/stm32f4/` layer means both people implement and review the exact same driver files independently.
+
+**Assignment collaboration model — both write everything fully.**
+The merge is treated as a compare-and-synthesise session rather than mechanical conflict resolution. This forces both people to engage with the whole problem and ensures differences in design choices are discussed. To verify the layering, the cross-flash integration test (Assignment 01, Part E) requires flashing the synthesized driver onto the partner's board.
+
+**Device library packaging — `LIB/` in-repo, submodule-ready.**
+Portable device drivers (like the MPU-6050) have been moved to a new `LIB/` layer. Each library is self-contained with its own `inc/`, `src/`, and CMake configuration. The build enforces portability by only linking MCU compiler flags (`_cpu`), so no STM32 peripheral headers can be included by accident.
+
 ## Open decisions
 
 - **I2C bus speed.** Still 100 kHz in the `.ioc`. The MPU6050 supports 400 kHz. Decide after

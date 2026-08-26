@@ -5,9 +5,10 @@ exercise. This is a process document, not a spec — it says what to figure out 
 order, not what the answers are. See the note at the bottom on spoiler sources.
 
 **Status:** in progress on the IMU track. Phase 0 is answered (see
-[driver_development_log.md](driver_development_log.md)) and `DRIVERS/` holds a **scaffold with no
-implementation** — complete headers, empty function bodies. The ESC track has not started. See
-[CLAUDE.md](../CLAUDE.md) for current firmware state.
+[driver_development_log.md](driver_development_log.md)) and `LIB/mpu6050/`, `LIB/drv_common/`,
+and `DRIVERS/stm32f4/` hold a **scaffold with no implementation** — complete headers, empty
+function bodies. The ESC track has not started. See [CLAUDE.md](../CLAUDE.md) for current
+firmware state.
 
 This document is the *why and the ordering*. The *how* — task-by-task instructions with acceptance
 criteria — lives in [homework/](homework/); milestones `I0`–`I4` are covered by
@@ -55,7 +56,7 @@ Write the answers down before implementing either driver.
 
 > **Answered.** First pass and revision are both in
 > [driver_development_log.md](driver_development_log.md); the resulting contracts are encoded in
-> `DRIVERS/inc/`. Three of the first-pass answers were revised after scaffolding — which is the
+> `LIB/` and `DRIVERS/stm32f4/inc/`. Three of the first-pass answers were revised after scaffolding — which is the
 > point of writing them down where they can be argued with.
 
 ---
@@ -76,7 +77,7 @@ Write the answers down before implementing either driver.
       most transferable value — reading a peripheral chapter and turning it into correct code.
       **Do not hand it to the learner.**
 
-      *Skeleton done* — `DRIVERS/inc/` and `DRIVERS/src/`, compiling and linking, all bodies
+      *Skeleton done* — `LIB/` and `DRIVERS/stm32f4/`, compiling and linking, all bodies
       still stubs. Two requirements that are easy to miss and expensive to discover later:
   - [ ] The read path needs `len == 1`, `len == 2` and `len >= 3` handled **separately**. Folding
         the short cases into the general one produces a function that writes three bytes into a
@@ -214,7 +215,7 @@ driver in isolation and nothing that joins them, so this is the gap between "two
 - [ ] **One test app per driver**, using the existing `app_selector.h` pattern — an app that
       exercises nothing but the one driver. Keeps the driver API honest: if the test app has
       to reach around the API to do something, the API is wrong. Remember: a new `.c` in
-      `APPS/src/` or `DRIVERS/src/` needs a CMake **reconfigure**, not just a rebuild
+      `APPS/src/`, `DRIVERS/stm32f4/src/` or `LIB/` needs a CMake **reconfigure**, not just a rebuild
       (glob-based sources).
 
       `mpu6050_probe()` exists precisely because the first rung of the IMU ladder below is a

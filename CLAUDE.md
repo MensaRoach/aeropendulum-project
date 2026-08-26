@@ -56,9 +56,14 @@ app exists again — the telemetry stream decodes on the host.
 
 | Path | Role |
 |---|---|
+| `LIB/` | Portable device drivers and shared abstractions. No MCU-specific headers reachable from here — portability is enforced by the build, not just documented. See [LIB/README.md](LIB/README.md). |
+| `LIB/drv_common/` | Header-only interface library: `drv_status.h` (shared return type) and `i2c_transport.h` (the hardware-agnostic bus seam). |
+| `LIB/mpu6050/` | MPU-6050 device driver. Depends on `drv_common`; knows nothing about STM32. |
+| `DRIVERS/` | Platform drivers, keyed by MCU family. Selects the right subdirectory from `MCU_FAMILY` in `board.cmake`. |
+| `DRIVERS/stm32f4/` | STM32F4 I2C and USART platform drivers. Compiles to static lib `drivers`. Shared by all STM32F4 boards (F401, F407). Currently a scaffold — see [DRIVERS/README.md](DRIVERS/README.md). |
 | `APPS/` | Application logic and wiring. Compiles to static lib `apps`, linked into the board executable. |
-| `DRIVERS/` | Peripheral and device drivers (`inc/` + `src/`). Compiles to static lib `drivers`. Currently a scaffold — see [DRIVERS/README.md](DRIVERS/README.md). |
 | `BOARDS/NUCLEO-F401RE/` | STM32CubeIDE-generated board support (`Core/`, `Drivers/`, `.ioc`, linker scripts, `pin_definitions.h`, `board.cmake`). Regenerate via CubeMX; don't hand-edit. |
+| `BOARDS/STM32F407G-DISC1/` | Same structure as above, for the collaborator's board. No USART configured yet — see `pin_definitions.h` for the note. |
 | `BOARDS/<board>/board.cmake` | Board manifest defining MCU family, device, CPU profile, driver mode, debug target. |
 | `.cmake/` | `gcc-arm-none-eabi.cmake` (toolchain), `cortex_profiles.cmake` (CPU flag mappings), `stm32.cmake` (`add_stm32_board()` wrapper and board discovery). |
 | `tools/` | Host-side Python: telemetry reader, 3D pose visualizer, IMU-driven synth. |
@@ -77,6 +82,7 @@ app exists again — the telemetry stream decodes on the host.
 | [.docs/imu_data_processing.md](.docs/imu_data_processing.md) | Reference, **describes deleted firmware** | The math is still correct and the host tools still implement it. The firmware it describes no longer exists. **Spoiler source.** |
 | [.docs/cmake_multi_board_plan.md](.docs/cmake_multi_board_plan.md) | **Implemented** | Historical implementation brief. Kept for the reasoning in §4 (rejected alternatives) and §7. |
 | [DRIVERS/README.md](DRIVERS/README.md) | Active | Layering rule and driver conventions. |
+| [LIB/README.md](LIB/README.md) | Active | What belongs in `LIB/` vs `DRIVERS/`, and the submodule-ready rule. |
 
 ### Spoilers
 
@@ -97,26 +103,49 @@ fine; reproducing their answers into a reply is what defeats the exercise.
 
 - loads `BOARDS/<board>/board.cmake` to read the board manifest (`MCU_FAMILY`, `DEVICE`, `CPU_PROFILE`, `DRIVER_MODE`, `DEBUG_DEVICE`);
 - resolves CPU flags via `cortex_flags(${CPU_PROFILE})` from [.cmake/cortex_profiles.cmake](.cmake/cortex_profiles.cmake);
-- creates an INTERFACE library **`${BOARD_NAME}_config`** carrying include paths, CPU compiler and linker flags, and the defines (e.g. `USE_FULL_LL_DRIVER` + `STM32F401xE`);
+- creates **two** INTERFACE libraries:
+  - **`${BOARD_NAME}_cpu`** — CPU compile/link flags only (`-mcpu=`, `-mfpu=`, `-mfloat-abi=`, `-mthumb`). No include paths, no defines. `LIB/` targets link this to accept the MCU ABI without gaining access to STM32 peripheral headers.
+  - **`${BOARD_NAME}_config`** — links `_cpu` PUBLIC and adds board include paths (`Core/Inc`, `Drivers/…`) and defines (`USE_FULL_LL_DRIVER`, `STM32F401xE` / `STM32F407xx`). Everything that linked `_config` before still works. The split is the **enforcement mechanism** for `LIB/` portability — adding an `#include "stm32f4xx_ll_i2c.h"` inside `LIB/mpu6050/` is a build error, not a comment violation.
+- promotes `MCU_FAMILY` to a CMake cache variable so the `DRIVERS/` and `LIB/` subdirectories can read it;
 - globs `Core/Src/*.c`, `Drivers/<FAMILY_DIR>_HAL_Driver/Src/*.c`, and `Core/Startup/*.s` with `CONFIGURE_DEPENDS` into the executable target `${BOARD_NAME}`;
 - finds the linker script (`*FLASH.ld` or manifest override) and sets per-board link options including `-Wl,-Map=$<TARGET_FILE_DIR:${BOARD}>/${BOARD}.map`.
 
-`DRIVERS/CMakeLists.txt` and `APPS/CMakeLists.txt` each glob `src/*.c` with `CONFIGURE_DEPENDS` into
-the static libs `drivers` and `apps`, and link both into the board executable. The root
-`CMakeLists.txt` adds `DRIVERS` **before** `APPS`, because `apps` links `drivers`.
+The root `CMakeLists.txt` then adds subdirectories in order:
+```cmake
+add_stm32_board(${BOARD_NAME})
+add_subdirectory(LIB)       # drv_common (INTERFACE) + mpu6050 (STATIC, links _cpu)
+add_subdirectory(DRIVERS)   # selects DRIVERS/stm32f4/ from MCU_FAMILY; target named `drivers`
+add_subdirectory(APPS)      # links both `drivers` and `mpu6050`
+```
 
-Any new library target must link `${BOARD_NAME}_config` to inherit the MCU flags and include paths.
+`DRIVERS/CMakeLists.txt` converts `MCU_FAMILY` (e.g. `STM32F4`) to lower-case and delegates to
+`DRIVERS/stm32f4/CMakeLists.txt`, which globs `src/*.c` and builds the `drivers` static lib.
+If `DRIVERS/<family>/` does not exist, it is a `FATAL_ERROR` — adding a new family requires
+adding the matching subdirectory.
+
+**Link rules that matter:**
+- `mpu6050` → `_cpu` only. Never `_config`. This keeps STM32 headers physically unreachable.
+- `drivers` → `_config` (PUBLIC, because `bus_i2c.h` / `bus_uart.h` pull in LL headers transitively).
+- `apps` → `_config` + `drivers` + `mpu6050`.
+- A new **portable** library target: link `_cpu` only, never `_config`.
+- A new **platform** library target: link `_config`.
 
 ### Where code goes
 
 | Kind of code | Directory |
 |---|---|
-| Peripheral drivers (I2C, USART, timers) and device drivers (IMU, ESC) | `DRIVERS/` |
+| Portable device drivers (IMU, ESC) and shared type/interface headers | `LIB/` |
+| Platform drivers — MCU peripheral access (I2C, USART, timers) | `DRIVERS/stm32f4/` |
 | Apps, wiring, control logic — anything that picks a concrete peripheral | `APPS/` |
 
-`drivers` deliberately has **no include path to `BOARDS/${BOARD_NAME}`**, so driver sources cannot
-reach `pin_definitions.h`. Choosing which peripheral a device sits on is the application's job; the
-missing include path is what makes that rule enforced rather than merely documented.
+`DRIVERS/stm32f4/` deliberately has **no include path to `BOARDS/${BOARD_NAME}`**, so platform
+driver sources cannot reach `pin_definitions.h`. Choosing which peripheral a device sits on is
+the application's job; the missing include path is what makes that rule enforced rather than
+merely documented.
+
+`LIB/` has no include path to `BOARDS/${BOARD_NAME}` **and** no include path to the STM32 LL
+headers — only `_cpu` flags, not `_config` includes. A device driver that tries to call an LL
+function gets a build error.
 
 ## Application model
 

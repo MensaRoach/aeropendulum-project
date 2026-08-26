@@ -1,7 +1,7 @@
 # Implementation Plan — Multi-Board Restructure & Two-Person Workflow
 
 **Created:** 2026-08-26 01:40 +02:00
-**Status:** Phase 1 complete (commit `9680e78`). Phases 2–3 not started.
+**Status:** Phase 2 complete. Phase 3 not started.
 **Audience:** An LLM agent implementing this in a fresh session.
 
 > Read [CLAUDE.md](../../../CLAUDE.md) before touching anything. Its conventions
@@ -350,6 +350,19 @@ Update to match the new tree. Keep every existing cross-reference working.
 | [.docs/driver_development_log.md](../../driver_development_log.md) | Add an entry recording the three decisions in §2 and the reasoning in §1. |
 
 After editing, re-run the link check — every relative link in every `.md` must resolve.
+
+### 7.1 Execution record — 2026-08-26 02:29–02:40 +02:00
+
+**Files Updated:**
+- `CLAUDE.md`: Added `LIB/` to layout, split `DRIVERS/` into family-keyed structure, and completely rewrote the "How the build wires together" section to explain `_cpu` vs `_config` targets and build enforcement.
+- `README.md`: Updated directory structure and added a two-boards note to the "Project Status". Also added F407 presets to the Windows and macOS examples.
+- `DRIVERS/README.md`: Updated layering diagram and documented the platform driver vs. device driver rules.
+- `LIB/README.md`: Created new file documenting portable driver constraints and the submodule-ready rule.
+- `.docs/driver_development_plan.md`: Updated paths from `DRIVERS/inc` to `LIB/` and `DRIVERS/stm32f4/`.
+- `.docs/driver_development_log.md`: Recorded the three major restructure decisions (per-family platform layer, fully write everything collaboration model, `LIB/` packaging).
+
+**Verification:**
+- Ran a custom Python script (`check_links.py`) to parse all markdown files and ensure no relative links were broken. Script returned 0 broken links.
 
 ---
 
