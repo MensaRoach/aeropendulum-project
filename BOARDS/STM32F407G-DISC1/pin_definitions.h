@@ -21,7 +21,8 @@
  *
  * MX_GPIO_Init() leaves these pins in analog mode (not declared in the
  * .ioc). The application must call LL_GPIO_Init() before toggling.
- * GPIOD clock is enabled by MX_GPIO_Init() via the DMA/I2C port clocks. */
+ * GPIOD's clock is enabled directly by MX_GPIO_Init() (LL_AHB1_GRP1_EnableClock
+ * for GPIOD), the same as every other port it configures. */
 #define STATUS_LED_PORT GPIOD
 #define STATUS_LED_PIN  LL_GPIO_PIN_12
 

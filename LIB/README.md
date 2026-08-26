@@ -38,8 +38,8 @@ Header-only INTERFACE library. No source files.
 
 | File | Role |
 |---|---|
-| `inc/drv_status.h` | `drv_status_t` — the shared return type for every driver entry point. One value per distinct recovery action; `DRV_OK` / `DRV_ERR_STATE` / `DRV_ERR_NACK` / `DRV_ERR_TIMEOUT` / `DRV_ERR_BUS`. |
-| `inc/i2c_transport.h` | The hardware-agnostic I2C interface. `i2c_bus_t` struct + `i2c_read` / `i2c_write` / `i2c_bus_recover` function pointers. No MCU headers, no LL, no includes beyond `drv_status.h`. |
+| `inc/drv_status.h` | `drv_status_t` — the shared return type for every driver entry point. One value per distinct recovery action: `DRV_OK`, `DRV_ERR_PARAM`, `DRV_ERR_BUSY`, `DRV_ERR_TIMEOUT`, `DRV_ERR_NACK`, `DRV_ERR_BUS`, `DRV_ERR_STATE`, `DRV_ERR_ID`. |
+| `inc/i2c_transport.h` | The hardware-agnostic I2C interface: `i2c_transport_t` — an opaque `bus` pointer plus `read` / `write` / `read_async` function-pointer fields. No MCU headers, no LL, no includes beyond `drv_status.h`. **Note:** the concrete bus handle (`i2c_bus_t`) and bus-recovery function (`i2c_bus_recover`) are platform code, not portable — they live in `DRIVERS/stm32f4/inc/bus_i2c.h`, which *implements* this interface. Don't be tempted to move them here; recovering a wedged bus is inherently MCU-specific. |
 
 ### `mpu6050/`
 

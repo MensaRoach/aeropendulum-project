@@ -375,7 +375,7 @@ footer.foot {
             <div class="fact"><dt>Effort</dt><dd>12&ndash;18 hours</dd></div>
             <div class="fact"><dt>Sessions</dt><dd>5 sittings</dd></div>
             <div class="fact"><dt>Tasks</dt><dd>27 total</dd></div>
-            <div class="fact"><dt>Hardware</dt><dd>NUCLEO-F401RE + MPU-6050</dd></div>
+            <div class="fact"><dt>Hardware</dt><dd>Your board + MPU-6050 (+ partner's board for Part E)</dd></div>
             <div class="fact"><dt>Prerequisite</dt><dd>None</dd></div>
         </dl>
         <div style="height:1.75rem"></div>
@@ -1640,6 +1640,153 @@ static mpu6050_t  s_imu;</code></pre>
             </div>
         </section>
 
+        <!-- ── PART E ───────────────────────────────────────────────────── -->
+        <section id="part-e">
+            <div class="sec__head">
+                <span class="sec__eyebrow">Part E &middot; 3 tasks</span>
+                <h2>Integrate</h2>
+                <p>
+                    The payoff of building this as <code>LIB/</code> + <code>DRIVERS/&lt;family&gt;/</code>
+                    instead of one board-specific blob. If the layering is real and not just a
+                    diagram, your driver runs on your partner's board with zero changes.
+                </p>
+            </div>
+
+            <div class="note" style="max-width:var(--measure); margin-bottom:1.5rem">
+                <span class="note__label">Why this is the real test</span>
+                <p>
+                    Both of you wrote the whole thing independently. A code review can tell you
+                    whether a merge <em>looks</em> right. It cannot tell you whether a board-specific
+                    assumption is quietly baked into what is supposed to be portable code &mdash; a
+                    hard-coded clock value, a pin number, an instance that only happens to exist on
+                    one of the two boards. Only running it on hardware neither of you originally
+                    targeted can catch that.
+                </p>
+            </div>
+
+            <div class="tasks">
+
+                <article class="task" id="E1">
+                    <div class="task__head">
+                        <span class="task__id">E1</span>
+                        <h3>Merge and synthesise</h3>
+                        <span class="task__time">~2 h, together</span>
+                        <label class="tick"><input type="checkbox" data-task="E1"></label>
+                    </div>
+                    <div class="task__body">
+                        <p>
+                            You each have a complete, independently-written
+                            <code>DRIVERS/stm32f4/</code> and <code>LIB/mpu6050/</code>. Sit down
+                            together and produce one merged branch.
+                        </p>
+                        <p>This is not mechanical conflict resolution &mdash; there is no shared
+                           ancestor for these files, so every difference is a real choice between two
+                           working approaches. For each one:</p>
+                        <ol>
+                            <li>Read both versions of the function side by side
+                                (<code>git diff &lt;branch-a&gt;..&lt;branch-b&gt; -- &lt;path&gt;</code>
+                                is a fast way to see them together).</li>
+                            <li>Pick the clearer one, or combine the best parts of both.</li>
+                            <li>If they disagree on behaviour and not just style &mdash; a different
+                                timeout value, a different error code for the same failure &mdash;
+                                that disagreement is worth a sentence in the log, because it means one
+                                of you found something the other missed.</li>
+                        </ol>
+                        <div class="note">
+                            <span class="note__label">After merging</span>
+                            <p>
+                                Both of you reset your own branch onto the merged result before
+                                continuing. Skip this and your branches silently diverge again, and
+                                the next merge re-fights everything this one just settled.
+                            </p>
+                        </div>
+                        <div class="accept">
+                            <h4>Done when</h4>
+                            <p>
+                                One branch builds clean on the board you developed on, and every
+                                difference between the two originals was a deliberate choice, not an
+                                accident of whoever's merge happened to win.
+                            </p>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="task" id="E2">
+                    <div class="task__head">
+                        <span class="task__id">E2</span>
+                        <h3>Cross-flash</h3>
+                        <span class="task__time">~1 h, together</span>
+                        <label class="tick"><input type="checkbox" data-task="E2"></label>
+                    </div>
+                    <div class="task__body">
+                        <p>
+                            Take the merged branch from E1. Build it against
+                            <strong>the board you did not develop on</strong> and flash it there.
+                        </p>
+                        <pre><code>cmake --preset &lt;their-board&gt;-Debug-Local
+cmake --build .build/&lt;their-board&gt;-Debug-Local</code></pre>
+                        <p>
+                            Run the verification ladder from D2 again, in full, on that board. Not a
+                            glance at the LED &mdash; the whole ladder, including the six-face test.
+                        </p>
+                        <div class="note note--red">
+                            <span class="note__label">If it does not just work</span>
+                            <p>
+                                Good &mdash; you found the thing this task exists to find. Somewhere a
+                                board-specific assumption leaked into code that was supposed to be
+                                portable. Common culprits: a clock value that should have come from
+                                <code>PCLK1</code> at runtime instead of being written down as a
+                                constant, a pin or instance macro used directly instead of through
+                                <code>pin_definitions.h</code>, or a timing constant tuned for one
+                                board's bus speed. Fix it in the shared branch, not with a board-specific
+                                <code>#ifdef</code> &mdash; an <code>#ifdef</code> here is a patch over
+                                the leak, not a fix of it.
+                            </p>
+                        </div>
+                        <div class="accept">
+                            <h4>Done when</h4>
+                            <p>
+                                The merged driver passes the full D2 ladder on <strong>both</strong>
+                                boards from the same source tree, with no board-specific code path in
+                                <code>DRIVERS/stm32f4/</code> or <code>LIB/mpu6050/</code>.
+                            </p>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="task" id="E3">
+                    <div class="task__head">
+                        <span class="task__id">E3</span>
+                        <h3>Record what you found</h3>
+                        <span class="task__time">~30 min</span>
+                        <label class="tick"><input type="checkbox" data-task="E3"></label>
+                    </div>
+                    <div class="task__body">
+                        <p>
+                            Add an entry to <code>driver_development_log.md</code> covering the
+                            integration:
+                        </p>
+                        <ul>
+                            <li>What, if anything, broke on cross-flash and why.</li>
+                            <li>Any behavioural disagreement from E1 that got resolved one way over
+                                the other, and the reasoning.</li>
+                            <li>Whether the per-task merge cadence (merging after small tasks rather
+                                than waiting for the whole assignment) made E1 easier than one merge
+                                at the end would have been &mdash; you now have the experience to say
+                                so with evidence rather than guess.</li>
+                        </ul>
+                        <div class="accept">
+                            <h4>Done when</h4>
+                            <p>
+                                The entry exists and a third reader could tell, from it alone, whether
+                                the portability claim actually held up under a real test.
+                            </p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
         <!-- ── SUBMISSION ───────────────────────────────────────────────── -->
         <section id="submission">
             <div class="sec__head">
@@ -1657,6 +1804,7 @@ static mpu6050_t  s_imu;</code></pre>
                 <li><label class="tick"><input type="checkbox" data-sub="Sub8"><span>Log updated with: the USART enable finding (A2), the duplicated timebase decision (A1), inherited register defaults (C4), observed sign convention (D2), timing figures (D4)</span></label></li>
                 <li><label class="tick"><input type="checkbox" data-sub="Sub9"><span>Out-of-scope functions still return <code>DRV_ERR_STATE</code>, otherwise untouched</span></label></li>
                 <li><label class="tick"><input type="checkbox" data-sub="Sub10"><span>One commit per task, each saying what was done and why</span></label></li>
+                <li><label class="tick"><input type="checkbox" data-sub="Sub11"><span>Merged branch passes the full D2 ladder on <strong>both</strong> boards (E2), with the integration findings recorded (E3)</span></label></li>
             </ul>
         </section>
 

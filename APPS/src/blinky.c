@@ -9,8 +9,9 @@ void blinky_init(void)
 {
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-    // MX_GPIO_Init() already enabled the GPIOA clock, but it leaves PA5 in
-    // analog mode along with the other unused pins, so claim it as an output.
+    // MX_GPIO_Init() already enabled the status LED's port clock, but it
+    // leaves the pin in analog mode along with the other unused pins, so
+    // claim it as an output.
     GPIO_InitStruct.Pin = STATUS_LED_PIN;
     GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
     GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;

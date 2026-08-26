@@ -92,9 +92,33 @@ Three reasons the split is worth it:
 
 ## Workflow
 
-To make the collaboration model work without chaotic merge conflicts, follow this cadence:
+Both of you implement every driver fully, on your own branch, independently. That is the point —
+maximum individual learning — but it has a failure mode worth designing around: two people writing
+the same 400-line file from scratch and meeting for the first time at one giant merge produces a
+conflict hunk that is really a rewrite with extra steps, not a merge.
+
+The fix is cadence, not tooling.
 
 1. **Branch naming**: Use descriptive, scoped branch names (e.g., `feat/hw01-i2c`, `fix/uart-timeout`).
-2. **Commit per task**: Make a commit for every numbered task (e.g., A1, A2) in the assignment. Your commit message should explain what was done and *why*.
-3. **Merge cadence**: Merge with your partner when a milestone or assignment is complete. Do not merge in the middle of an assignment unless explicitly instructed.
-4. **Synthesis sessions**: Do not blindly resolve git conflicts. Sit together, run `git diff a..b -- path` or `git checkout --conflict=diff3`, and treat the merge as a discussion to synthesize the best implementation choices from both sides. You can use `git merge --no-commit` to pause and inspect the merge before finalizing it.
+2. **Commit per task**: Make a commit for every numbered task (e.g., A1, A2) in the assignment. Your
+   commit message should explain what was done and *why*.
+3. **Merge per task, not per assignment.** Merge with your partner after each task or small cluster
+   of tasks — right after A1, again after A3, again after B4 — not once at the end. Each merge should
+   still be small enough to read in full:
+
+   | Merge point | Rough size | What it rehearses |
+   |---|---|---|
+   | After A1 (deadline helper) | ~15 lines | The mechanics, on something readable whole |
+   | After A3 (UART write) | ~40 lines | Two valid approaches to one loop |
+   | After B4 (I2C read) | ~150 lines | The real thing — after several rehearsals |
+
+   Waiting until the whole assignment is done turns every one of those into a single ~800-line
+   collision. **Part E's cross-flash step is not exempt from this** — merge as you go through A–D so
+   that by the time you reach E1 there is one branch to synthesise, not two.
+4. **Synthesis sessions**: Do not blindly resolve git conflicts. Sit together, run
+   `git diff a..b -- path` or `git checkout --conflict=diff3`, and treat the merge as a discussion to
+   synthesise the best implementation choices from both sides. Use `git merge --no-commit` to pause
+   and inspect the merge before finalising it.
+5. **Reset onto the result.** After each synthesis, both of you reset your own branch onto the merged
+   commit before continuing. Skip this and your branches silently diverge again, and the next merge
+   re-fights everything the last one just settled.
