@@ -11,7 +11,7 @@
  * LL drivers and regenerates the BSP. Verify the ST-LINK VCP wiring before
  * assuming USART output routes to the host; the DISC1 may need a USB-TTL
  * adapter on a different USART than the Nucleo. See the Phase 1 notes in
- * .docs/llm_plans/2026-08-26_0140/multi-board-restructure.md §6.4.
+ * .docs/llm-plans/2026-08-26-0140/multi-board-restructure.md §6.4.
  * ----------------------------------------------------------------------- */
 
 /* Status LED — LD4 (green) on PD12.
