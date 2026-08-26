@@ -35,6 +35,13 @@
             }
         },
         {
+            "name": "board-STM32F407G-DISC1",
+            "hidden": true,
+            "cacheVariables": {
+                "BOARD_NAME": "STM32F407G-DISC1"
+            }
+        },
+        {
             "name": "NUCLEO-F401RE-Debug",
             "displayName": "NUCLEO-F401RE (Debug)",
             "inherits": [
@@ -49,6 +56,22 @@
                 "Release",
                 "board-NUCLEO-F401RE"
             ]
+        },
+        {
+            "name": "STM32F407G-DISC1-Debug",
+            "displayName": "STM32F407G-DISC1 (Debug)",
+            "inherits": [
+                "Debug",
+                "board-STM32F407G-DISC1"
+            ]
+        },
+        {
+            "name": "STM32F407G-DISC1-Release",
+            "displayName": "STM32F407G-DISC1 (Release)",
+            "inherits": [
+                "Release",
+                "board-STM32F407G-DISC1"
+            ]
         }
     ],
     "buildPresets": [
@@ -59,6 +82,14 @@
         {
             "name": "NUCLEO-F401RE-Release",
             "configurePreset": "NUCLEO-F401RE-Release"
+        },
+        {
+            "name": "STM32F407G-DISC1-Debug",
+            "configurePreset": "STM32F407G-DISC1-Debug"
+        },
+        {
+            "name": "STM32F407G-DISC1-Release",
+            "configurePreset": "STM32F407G-DISC1-Release"
         }
     ]
 }

@@ -12,6 +12,18 @@
             "device": "STM32F401RE",
             "preLaunchTask": "Build",
             "showDevDebugOutput": "none"
+        },
+        {
+            "name": "Debug / Flash STM32F407G-DISC1 (Cortex-Debug)",
+            "cwd": "${workspaceFolder}",
+            "executable": "${command:cmake.launchTargetPath}",
+            "request": "launch",
+            "type": "cortex-debug",
+            "runToEntryPoint": "main",
+            "servertype": "stlink",
+            "device": "STM32F407VG",
+            "preLaunchTask": "Build",
+            "showDevDebugOutput": "none"
         }
     ]
 }

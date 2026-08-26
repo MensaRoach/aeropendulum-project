@@ -1,0 +1,7 @@
+stm32_board(
+    MCU_FAMILY   STM32F4
+    DEVICE       STM32F407xx
+    CPU_PROFILE  cortex-m4f
+    DRIVER_MODE  LL
+    DEBUG_DEVICE STM32F407VG
+)
