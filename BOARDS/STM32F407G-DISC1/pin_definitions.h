@@ -7,11 +7,20 @@
  * STM32F407G-DISC1 pin definitions
  *
  * TELEMETRY_USART is intentionally absent: the .ioc does not declare a
- * USART yet. Add it after the collaborator configures one in CubeMX with
- * LL drivers and regenerates the BSP. Verify the ST-LINK VCP wiring before
- * assuming USART output routes to the host; the DISC1 may need a USB-TTL
- * adapter on a different USART than the Nucleo. See the Phase 1 notes in
- * .docs/llm-plans/2026-08-26-0140/multi-board-restructure.md §6.4.
+ * USART yet, so there is no generated usart.c to back it.
+ *
+ * Adding one is task S5 of Assignment 01 (.docs/homework/homework_01.html),
+ * which walks through it: enable USART2 on PA2/PA3 in CubeMX at 115200 8E1
+ * with LL drivers, regenerate, then add
+ *
+ *     #define TELEMETRY_USART USART2
+ *
+ * next to the IMU_I2C block below. Until that is done, Part A of the
+ * assignment has no peripheral to drive.
+ *
+ * Verify the ST-LINK VCP wiring before assuming USART output reaches the
+ * host: unlike the Nucleo, the DISC1 may need a USB-TTL adapter on
+ * PA2/PA3 plus a shared ground.
  * ----------------------------------------------------------------------- */
 
 /* Status LED — LD4 (green) on PD12.
