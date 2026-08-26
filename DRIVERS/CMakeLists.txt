@@ -1,21 +1,12 @@
-# Find all source files in the src directory
-file(GLOB DRIVERS_SOURCES CONFIGURE_DEPENDS "src/*.c")
-
-# DRIVERS will be a static library linked to the board executable
-add_library(drivers STATIC ${DRIVERS_SOURCES})
-
-target_include_directories(drivers PUBLIC inc)
-
-# PUBLIC, not PRIVATE: bus_i2c.h and bus_uart.h include LL headers, so anything
-# consuming those headers needs the board config's include paths and defines too.
-#
-# Note there is deliberately no include path to BOARDS/${BOARD_NAME} here. Driver
-# sources must not depend on that board's pin_definitions.h aliases -- picking the
-# concrete peripheral is the application's job, and leaving the path out is what
-# makes that rule enforced rather than merely documented.
-target_link_libraries(drivers PUBLIC ${BOARD_NAME}_config)
-
-# Link DRIVERS to the board executable
-if(TARGET ${BOARD_NAME})
-    target_link_libraries(${BOARD_NAME} PRIVATE drivers)
+# Select the platform-specific driver subdirectory based on MCU_FAMILY from
+# board.cmake (promoted to a cache variable by add_stm32_board()).
+# This is keyed per-family, not per-board: both STM32F401 and STM32F407 use
+# the same I2C v1 peripheral and share one DRIVERS/stm32f4/ implementation.
+string(TOLOWER "${MCU_FAMILY}" _family_dir)   # e.g. STM32F4 -> stm32f4
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${_family_dir}")
+    message(FATAL_ERROR
+        "No platform drivers for MCU_FAMILY '${MCU_FAMILY}' "
+        "(looked for DRIVERS/${_family_dir}/). "
+        "Add a DRIVERS/${_family_dir}/ directory with its own CMakeLists.txt.")
 endif()
+add_subdirectory(${_family_dir})

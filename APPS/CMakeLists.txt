@@ -11,8 +11,9 @@ target_include_directories(apps PUBLIC inc)
 # Link to our custom STM32 configuration interface library
 target_link_libraries(apps PRIVATE ${BOARD_NAME}_config)
 
-# Apps consume the drivers; drivers never consume apps.
-target_link_libraries(apps PRIVATE drivers)
+# Apps consume the drivers and the portable device library.
+# drivers never consume apps.
+target_link_libraries(apps PRIVATE drivers mpu6050)
 
 # Link APPS to the board executable
 if(TARGET ${BOARD_NAME})

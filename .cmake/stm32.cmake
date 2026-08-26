@@ -75,7 +75,19 @@ function(add_stm32_board BOARD)
 
     cortex_flags("${STM32_BOARD_CPU_PROFILE}" TARGET_FLAGS)
 
+    # -----------------------------------------------------------------------
+    # _cpu  — CPU compile/link flags only. No board-specific include paths or
+    #         defines. LIB/ targets link this so the compiler accepts the MCU
+    #         ABI without gaining access to STM32 peripheral headers.
+    # _config — links _cpu PUBLIC, then adds board include paths and defines.
+    #           Everything that linked _config before still works unchanged.
+    # -----------------------------------------------------------------------
+    add_library(${BOARD}_cpu INTERFACE)
+    target_compile_options(${BOARD}_cpu INTERFACE ${TARGET_FLAGS})
+    target_link_options(${BOARD}_cpu INTERFACE ${TARGET_FLAGS})
+
     add_library(${BOARD}_config INTERFACE)
+    target_link_libraries(${BOARD}_config INTERFACE ${BOARD}_cpu)
 
     target_include_directories(${BOARD}_config INTERFACE
         "${BOARD_DIR}/Core/Inc"
@@ -101,8 +113,9 @@ function(add_stm32_board BOARD)
         ${STM32_BOARD_EXTRA_DEFINES}
     )
 
-    target_compile_options(${BOARD}_config INTERFACE ${TARGET_FLAGS})
-    target_link_options(${BOARD}_config INTERFACE ${TARGET_FLAGS})
+    # Promote MCU_FAMILY to a cache variable so subdirectories added after
+    # add_stm32_board() (DRIVERS, LIB) can read it without relying on scope.
+    set(MCU_FAMILY "${STM32_BOARD_MCU_FAMILY}" CACHE STRING "MCU family for the selected board" FORCE)
 
     file(GLOB STM32_SOURCES CONFIGURE_DEPENDS
         "${BOARD_DIR}/Core/Src/*.c"

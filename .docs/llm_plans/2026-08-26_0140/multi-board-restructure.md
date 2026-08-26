@@ -413,9 +413,8 @@ grep -c "DRV_ERR_STATE" DRIVERS/stm32f4/src/*.c LIB/mpu6050/src/*.c
 
 ---
 
-## 12. Open questions for the user
+## 12. Open questions — resolved 2026-08-26
 
-1. `workflow.md` as a separate page, or a section inside `.docs/homework/README.md`? (§8.4)
-2. Part E inside Assignment 01, or its own short Assignment 01.5? (§8.3)
-3. Does the roadmap in `.docs/homework/README.md` need renumbering now that timers (03) and ESC (04)
-   are separate assignments and Part E adds an integration step?
+1. **`workflow.md`** — does not exist yet; create as a new section appended to `.docs/homework/README.md`.
+2. **Part E** — goes inside Assignment 01 (not a separate 01.5).
+3. **Roadmap renumbering** — yes, update `.docs/homework/README.md` to reflect new paths and Part E.
